@@ -5,11 +5,17 @@ import org.junit.Test;
 import java.util.concurrent.locks.LockSupport;
 
 /**
+ * LockSupport 的测试
+ * 提供线程挂起与睡眠的功能
+ *
  * @author LiKangning
  * @since 2018/3/13 下午4:44
  */
 public class LockSupportTest {
 
+    /**
+     * 挂起后，通过unpark进行唤醒
+     */
     @Test
     public void test() throws InterruptedException {
         Thread thread = new Thread() {
@@ -27,6 +33,9 @@ public class LockSupportTest {
         thread.join();
     }
 
+    /**
+     * 提前唤醒，在进行睡眠时直接跳过
+     */
     @Test
     public void test1() throws InterruptedException {
         Thread thread = new Thread() {
