@@ -6,6 +6,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
+ * 通常使用 {@link Condition} 类来替代 @{@code wait} 与 {@code notify}、{@code notifyAll} 操作
  * @author LiKangning
  * @since 2018/3/13 上午9:38
  */

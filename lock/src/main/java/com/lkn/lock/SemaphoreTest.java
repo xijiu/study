@@ -8,6 +8,8 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * 信号量
+ * 信号量不足时，将线程挂起等待，直至有足够的信号量
  * @author LiKangning
  * @since 2018/3/13 上午11:02
  */

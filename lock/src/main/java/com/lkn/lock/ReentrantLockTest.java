@@ -11,6 +11,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
+ * 可重入锁
+ * 场景：对比乐观锁与悲观锁在不同的场景的效率问题，不同的场景，效率不同
  * @author LiKangning
  * @since 2018/3/7 上午7:25
  */

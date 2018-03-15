@@ -8,6 +8,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
+ * 读写锁的学习
+ * 加读锁时：（共享锁）
+ *      可进行读操作
+ *      不可进行写操作
+ *
+ * 加写锁时：（排它锁）
+ *      不可进行读操作
+ *      不可进行写操作
  * @author LiKangning
  * @since 2018/3/13 上午11:20
  */

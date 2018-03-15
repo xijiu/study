@@ -4,6 +4,7 @@ import org.junit.After;
 import org.junit.Before;
 
 /**
+ * 程序运行耗时测试
  * @author LiKangning
  * @since 2018/3/7 上午7:35
  */

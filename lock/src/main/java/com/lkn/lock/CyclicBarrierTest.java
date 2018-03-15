@@ -5,6 +5,9 @@ import org.junit.Test;
 import java.util.concurrent.*;
 
 /**
+ * 循环栅栏
+ * 场景举例：
+ *      100个士兵为100个线程，100个士兵就绪完毕后，统一进行匍匐前进任务，100个都执行完毕后，再统一进行下一个任务
  * @author LiKangning
  * @since 2018/3/13 下午4:10
  */
