@@ -13,7 +13,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 public abstract class JvmLockAssist {
     private static final Map<String, ReentrantReadWriteLock> keyAndLockMap = Maps.newHashMap();
-    private static final Set<String> set = Sets.newConcurrentHashSet();
+//    private static final Set<String> set = Sets.newConcurrentHashSet();
 
     public void addWriteLock(String key) {
 //        set.con
