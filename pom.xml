@@ -8,6 +8,7 @@
     <modules>
         <module>lock</module>
         <module>hbase-client</module>
+        <module>common</module>
     </modules>
     <packaging>pom</packaging>
 
