@@ -2,7 +2,6 @@ package com.lkn.common.math;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.math.BigDecimal;
@@ -17,20 +16,15 @@ import java.util.Stack;
  * @since 2018/5/17 上午9:07
  */
 public class Arithmetic {
-	private String expression = "2 * ( 2 * 5.3 + 2.8 ) - 4 * ( 8.3 * ( 5 - 3 ) )";
+	private String expression = "2*(2*5.3+2.8)-4/(8.2*(5-3))";
 	private Stack<String> stack = new Stack<>();
 
 	@Test
 	public void test() {
-//		double a = 2*(2*5.3+2.8)-4/(8.2*(5-3));
-		long begin = System.currentTimeMillis();
+		double a = 2*(2*5.3+2.8)-4/(8.2*(5-3));
+		System.out.println(a);
 		BigDecimal bigDecimal = doCalc(expression);
 		System.out.println("result is : " + bigDecimal);
-//		for (int i = 0; i < 1000000; i++) {
-//			BigDecimal bigDecimal = doCalc(expression);
-//		}
-		long end = System.currentTimeMillis();
-		System.out.println(end - begin);
 	}
 
 	@Test
@@ -44,7 +38,7 @@ public class Arithmetic {
 		System.out.println(end - begin);
 	}
 
-	public BigDecimal doCalc(String expression) {
+	private BigDecimal doCalc(String expression) {
 		expression = expression.replace(" ", "");
 		char[] chars = expression.toCharArray();
 		StringBuilder element = new StringBuilder();
@@ -67,7 +61,6 @@ public class Arithmetic {
 		}
 
 		List<String> finalList = Lists.newArrayList(stack.toArray(new String[stack.size()]));
-
 		return calcWithoutBracket(finalList);
 	}
 
@@ -139,13 +132,12 @@ public class Arithmetic {
 	}
 
 	/**
-	 * 是否是运算符号
+	 * 两个数字的计算
+	 * @param leftNumber
+	 * @param operator
+	 * @param rightNumber
 	 * @return
 	 */
-	private boolean isOperator(char c) {
-		return c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')';
-	}
-
 	private BigDecimal calcTwoNumbers(String leftNumber, String operator, String rightNumber) {
 		Operator operatorEnum = Operator.getOperator(operator);
 		switch (operatorEnum) {
@@ -156,12 +148,15 @@ public class Arithmetic {
 			case MULTIPLY:
 				return new BigDecimal(leftNumber).multiply(new BigDecimal(rightNumber));
 			case DIVIDE:
-				return new BigDecimal(leftNumber).divide(new BigDecimal(rightNumber), BigDecimal.ROUND_HALF_DOWN);
+				return new BigDecimal(leftNumber).divide(new BigDecimal(rightNumber), 2, BigDecimal.ROUND_HALF_DOWN);
 			default:
 				throw new RuntimeException();
 		}
 	}
 
+	/**
+	 * 操作符的枚举
+	 */
 	private enum Operator {
 		ADD("+", 1),
 		SUBTRACT("-", 1),
