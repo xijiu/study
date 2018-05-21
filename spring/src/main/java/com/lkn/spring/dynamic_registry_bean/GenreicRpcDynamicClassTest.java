@@ -47,9 +47,9 @@ public class GenreicRpcDynamicClassTest {
     }
 
     Object springBean = applicationContext.getBean(genericClass);
-    Method method = genericClass.getDeclaredMethod("getName", new Class[] {Long.class});
+    Method method = genericClass.getDeclaredMethod("getName", Long.class);
     Object result = method.invoke(springBean, 20L);
-    System.out.println("rpc结果：" + result);
+    System.out.println("结果：" + result);
   }
 
   /**

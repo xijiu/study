@@ -17,6 +17,7 @@ import java.util.Stack;
  */
 public class Arithmetic {
 	private String expression = "2*(2*5.3+2.8)-4/(8.2*(5-3))";
+//	private String expression = "100-23*2";
 	private Stack<String> stack = new Stack<>();
 
 	@Test
@@ -38,6 +39,11 @@ public class Arithmetic {
 		System.out.println(end - begin);
 	}
 
+	/**
+	 * 执行计算
+	 * @param expression	4则运算表达式
+	 * @return	数字
+	 */
 	private BigDecimal doCalc(String expression) {
 		expression = expression.replace(" ", "");
 		char[] chars = expression.toCharArray();
@@ -51,7 +57,7 @@ public class Arithmetic {
 					element = new StringBuilder();
 				}
 				stack.push(String.valueOf(c));
-				if (c == ')') {
+				if (Objects.equal(Operator.RIGHT_BRACKET.key, String.valueOf(c))) {
 					popStack();
 				}
 			}
