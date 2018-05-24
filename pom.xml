@@ -10,6 +10,8 @@
         <module>hbase-client</module>
         <module>common</module>
         <module>spring</module>
+        <module>java8</module>
+        <module>calcite</module>
     </modules>
     <packaging>pom</packaging>
 
