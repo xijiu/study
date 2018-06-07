@@ -1,5 +1,7 @@
 package com.lkn.calcite;
 
+import com.lkn.calcite.simple.MemorySchema;
+import com.lkn.calcite.simple.MemorySchemaFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,9 +41,22 @@ public class SimpleTest {
 	@Test
 	public void myTest() throws Exception {
 		Statement st = connection.createStatement();
-		ResultSet rs = st.executeQuery("select * from \"Student\"");
-		while (rs.next()) {
-			printResultSet(rs);
+		try {
+			ResultSet rs = st.executeQuery("select * from \"Student\"");
+			while (rs.next()) {
+				printResultSet(rs);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+
+		System.out.println("-------------------------------我尼玛，华丽的分割线-----------------------------------------");
+		MemorySchema.FLAG = true;
+		MemorySchemaFactory.TOTAL_SCHEMA.getTableMap();
+		ResultSet rs2 = st.executeQuery("select * from \"Student\"");
+		while (rs2.next()) {
+			printResultSet(rs2);
 		}
 	}
 

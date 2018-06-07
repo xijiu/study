@@ -17,6 +17,8 @@ import java.util.Map;
 public class MemorySchema extends AbstractSchema {
 	private String dbName;
 
+	public static boolean FLAG = false;
+
 	public MemorySchema(String dbName) {
 		this.dbName = dbName;
 	}
@@ -24,12 +26,14 @@ public class MemorySchema extends AbstractSchema {
 	@Override
 	public Map<String, Table> getTableMap() {
 		Map<String, Table> tables = new HashMap<>();
-		MemoryData.Database database = MemoryData.MAP.get(dbName);
-		if (database == null) {
-			return tables;
-		}
-		for (MemoryData.Table table : database.tables) {
-			tables.put(table.tableName, new MemoryTable(table));
+		if (FLAG) {
+			MemoryData.Database database = MemoryData.MAP.get(dbName);
+			if (database == null) {
+				return tables;
+			}
+			for (MemoryData.Table table : database.tables) {
+				tables.put(table.tableName, new MemoryTable(table));
+			}
 		}
 		return tables;
 	}
@@ -45,6 +49,11 @@ public class MemorySchema extends AbstractSchema {
 		}
 
 		return functions;
+	}
+
+	@Override
+	public boolean contentsHaveChangedSince(long lastCheck, long now) {
+		return FLAG;
 	}
 
 }

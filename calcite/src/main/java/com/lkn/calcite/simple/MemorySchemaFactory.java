@@ -6,13 +6,12 @@ import org.apache.calcite.schema.SchemaPlus;
 
 import java.util.Map;
 
-public class MemorySchemaFactory implements SchemaFactory{
+public class MemorySchemaFactory implements SchemaFactory {
 
+	public static MemorySchema TOTAL_SCHEMA = null;
 	@Override
 	public Schema create(SchemaPlus parentSchema, String name, Map<String, Object> operand) {
-		System.out.println("param1 : " + operand.get("param1"));
-		System.out.println("param2 : " + operand.get("param2"));
-		System.out.println("Get database " + name);
-		return new MemorySchema(name);
+		TOTAL_SCHEMA = new MemorySchema(name);
+		return TOTAL_SCHEMA;
 	}
 }

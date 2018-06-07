@@ -12,6 +12,7 @@
         <module>spring</module>
         <module>java8</module>
         <module>calcite</module>
+        <module>rpc</module>
     </modules>
     <packaging>pom</packaging>
 
