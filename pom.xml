@@ -13,15 +13,17 @@
         <module>java8</module>
         <module>calcite</module>
         <module>rpc</module>
+        <module>design-mode</module>
     </modules>
     <packaging>pom</packaging>
 
     <name>study</name>
-    <url>http://maven.apache.org</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring.version>4.3.9.RELEASE</spring.version>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
 
     <dependencyManagement>
