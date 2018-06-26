@@ -1,10 +1,7 @@
 package com.lkn.algorithm.b_tree;
 
-import com.google.common.collect.*;
 import org.junit.Test;
 
-import java.util.Collection;
-import java.util.Set;
 
 
 /**
@@ -37,8 +34,6 @@ public class BtreeTest {
 		addElement(24);
 		addElement(29);
 
-		printTree();
-
 		addElement(26);
 
 		addElement(17);
@@ -47,23 +42,19 @@ public class BtreeTest {
 		addElement(31);
 		addElement(32);
 
-		printTree();
+		for (int i = 10; i < 25; i++) {
+			addElement(i);
+		}
+
+		addElement(60);
+		addElement(61);
+		addElement(62);
+
 		levelNodeShow();
 	}
 
-	private void printTree() {
-		Tree.bfs(root, (node, level) -> System.out.println(node.getElements()));
-		System.out.println("==================================");
-	}
-
 	private void levelNodeShow() {
-		Multimap<Integer, Node> map = HashMultimap.create();
-		Tree.bfs(root, (node, level) -> map.put(level, node));
-		Set<Integer> keys = Sets.newTreeSet(map.keys());
-		for (Integer level : keys) {
-			Collection<Node> nodes = map.get(level);
-			System.out.println(nodes);
-		}
+		PrintTree.print(root);
 	}
 
 	private void addElement(int element) {

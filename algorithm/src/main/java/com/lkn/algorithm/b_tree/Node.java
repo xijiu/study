@@ -16,7 +16,7 @@ import java.util.Set;
  */
 public class Node {
 	// 阶数
-	private static final int ORDER_NUM = 5;
+	public static final int ORDER_NUM = 5;
 	private static final int MIDDLE_INDEX = (ORDER_NUM % 2 == 0 ? ORDER_NUM - 2 : ORDER_NUM - 1) / 2;
 
 	/**
