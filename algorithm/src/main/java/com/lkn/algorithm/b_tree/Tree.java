@@ -1,5 +1,7 @@
 package com.lkn.algorithm.b_tree;
 
+import com.lkn.algorithm.b_tree.base.Element;
+import com.lkn.algorithm.b_tree.base.Node;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -63,7 +65,7 @@ public class Tree {
 		Node targetNode = findNodeForNewElement(root, newElement);
 		Set<Element> elements = targetNode.getElements();
 		if (!elements.contains(newElement)) {
-			targetNode.add(newElement);
+			TreeAdd.add(targetNode, newElement);
 		}
 	}
 

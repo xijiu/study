@@ -1,69 +1,49 @@
 package com.lkn.algorithm.b_tree;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.Sets;
+import com.lkn.algorithm.b_tree.base.Element;
+import com.lkn.algorithm.b_tree.base.Node;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
 
-import java.util.Collections;
 import java.util.Set;
 
 /**
- * B树的节点，一个节点中可能有多个元素
+ * B树添加操作
+ *
  * @author likangning
- * @since 2018/6/22 下午12:07
+ * @since 2018/6/27 上午9:56
  */
-public class Node {
-	// 阶数
-	public static final int ORDER_NUM = 5;
-	private static final int MIDDLE_INDEX = (ORDER_NUM % 2 == 0 ? ORDER_NUM - 2 : ORDER_NUM - 1) / 2;
-
-	/**
-	 * 当前节点拥有的元素
- 	 */
-	private Set<Element> elements = Sets.newTreeSet();
-
-	// 当前节点的父节点
-	@Setter
-	@Getter
-	private Node parent;
-
-	public Node(Node parent) {
-		this.parent = parent;
-	}
-
-	public Set<Element> getElements() {
-		return Collections.unmodifiableSet(elements);
-	}
+public class TreeAdd {
 
 	/**
 	 * 添加一个新元素
 	 * @param element 新节点
 	 */
-	public void add(Element element) {
-		addNewElementNormally(element);
+	public static void add(Node node, Element element) {
+		addNewElementNormally(node, element);
 		// 如果元素的数量已经大于等于阶数，那么对当前节点进行分裂操作
-		if (elements.size() >= ORDER_NUM) {
-			SplitBean splitBean = splitNode();
+		if (node.getElements().size() >= Node.ORDER_NUM) {
+			SplitBean splitBean = splitNode(node);
 			// 当前节点为根节点
-			if (parent == null) {
-				elements.clear();
-				addNewElementToNode(this, splitBean.middleElement);
+			if (node.getParent() == null) {
+				node.clearElements();
+				addNewElementToNode(node, splitBean.middleElement);
 			} else {
-				parent.add(splitBean.middleElement);
+				// 如果为非跟节点，那么继续执行递归方法
+				add(node.getParent(), splitBean.middleElement);
 			}
 		}
 	}
 
 	/**
-	 * 正常添加元素
+	 * 正常添加元素，不关心元素的数量是否已经超过阈值
 	 *
+	 * @param node 当前正操作的节点
 	 * @param newElement 新增的元素
 	 */
-	private void addNewElementNormally(Element newElement) {
-		addNewElementToNode(this, newElement);
-		Element[] bothSidesElements = getNewElementBothSidesElements(newElement);
+	private static void addNewElementNormally(Node node, Element newElement) {
+		addNewElementToNode(node, newElement);
+		Element[] bothSidesElements = getNewElementBothSidesElements(node, newElement);
 		Element beforeNewElement = bothSidesElements[0];
 		Element afterNewElement = bothSidesElements[1];
 		if (afterNewElement != null) {
@@ -78,14 +58,15 @@ public class Node {
 	/**
 	 * 节点分裂
 	 */
-	private SplitBean splitNode() {
+	private static SplitBean splitNode(Node node) {
 		Element middleElement = null;
-		Node leftNode = new Node(parent == null ? this : this.parent);
-		Node rightNode = new Node(parent == null ? this : this.parent);
+		Node leftNode = new Node(node.getParent() == null ? node : node.getParent());
+		Node rightNode = new Node(node.getParent() == null ? node : node.getParent());
 		int index = 0;
 		Element lastElementInLeftNode = null;
+		Set<Element> elements = node.getElements();
 		for (Element element : elements) {
-			if (index == MIDDLE_INDEX) {
+			if (index == Node.MIDDLE_INDEX) {
 				middleElement = element;
 				// 中间节点所连接的子node隶属于 leftNode
 				lastElementInLeftNode.setRightNode(element.getLeftNode());
@@ -93,7 +74,7 @@ public class Node {
 				resetFatherNodeForElement(leftNode, element);
 				middleElement.setLeftNode(leftNode);
 				middleElement.setRightNode(rightNode);
-			} else if (index < MIDDLE_INDEX) {
+			} else if (index < Node.MIDDLE_INDEX) {
 				addNewElementToNode(leftNode, element);
 				lastElementInLeftNode = element;
 			} else {
@@ -116,9 +97,9 @@ public class Node {
 	 * @param node	节点对象
 	 * @param element	元素
 	 */
-	private void addNewElementToNode(Node node, Element element) {
+	private static void addNewElementToNode(Node node, Element element) {
 		if (node != null && element != null) {
-			node.elements.add(element);
+			node.addElement(element);
 			resetFatherNodeForElement(node, element);
 		}
 	}
@@ -129,7 +110,7 @@ public class Node {
 	 * @param node	将要被置为父节点的node
 	 * @param element	当前元素
 	 */
-	private void resetFatherNodeForElement(Node node, Element element) {
+	private static void resetFatherNodeForElement(Node node, Element element) {
 		Node leftNode = element.getLeftNode();
 		Node rightNode = element.getRightNode();
 		if (leftNode != null) {
@@ -142,16 +123,17 @@ public class Node {
 
 	/**
 	 * 获取新添加元素后面的元素
+	 * @param node 要操作的节点
 	 * @param newAddElement	新增元素
 	 * @return	新增元素后面的元素
 	 */
-	private Element[] getNewElementBothSidesElements(Element newAddElement) {
+	private static Element[] getNewElementBothSidesElements(Node node, Element newAddElement) {
 		Element[] arrElement = new Element[2];
 		Element beforeNewElement = null;
 		Element afterNewElement = null;
 		// 标记上一个元素是否是新增元素
 		boolean valid = false;
-		for (Element lookupElement : elements) {
+		for (Element lookupElement : node.getElements()) {
 			if (valid) {
 				afterNewElement = lookupElement;
 				break;
@@ -168,17 +150,14 @@ public class Node {
 		return arrElement;
 	}
 
+	/**
+	 * 内部使用，方便参数传递
+	 */
 	@Builder
 	private static class SplitBean {
 		private Element middleElement;
 		private Node leftNode;
 		private Node rightNode;
 	}
-
-	@Override
-	public String toString() {
-		return elements.toString();
-	}
-
 
 }

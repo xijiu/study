@@ -1,5 +1,7 @@
 package com.lkn.algorithm.b_tree;
 
+import com.lkn.algorithm.b_tree.base.Element;
+import com.lkn.algorithm.b_tree.base.Node;
 import org.junit.Test;
 
 
@@ -60,7 +62,7 @@ public class BtreeTest {
 	private void addElement(int element) {
 		if (root == null) {
 			root = new Node(null);
-			root.add(new Element<>(element));
+			TreeAdd.add(root, new Element<>(element));
 		} else {
 			Tree.addElement(root, new Element<>(element));
 		}

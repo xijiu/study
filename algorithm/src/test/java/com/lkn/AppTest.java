@@ -9,7 +9,6 @@ import java.util.List;
 public class AppTest {
 
 
-
 	@Test
 	public void test() {
 		System.out.println("1,2,3,4");
@@ -46,6 +45,7 @@ public class AppTest {
 	}
 
 	private int height = 5;
+
 	private void calcTwoPoint(int parentPosition, int childPosition) {
 		int differ = childPosition - parentPosition;
 		for (int i = 0; i < height; i++) {
@@ -57,7 +57,8 @@ public class AppTest {
 
 	@Test
 	public void test4() {
-		int a = 13 / 2;
-		System.out.println(a);
+		int m = 5;
+		System.out.println(Math.ceil((double) m / 2));
+		System.out.println(Math.ceil((double) m / 2) - 1);
 	}
 }
