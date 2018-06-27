@@ -91,6 +91,8 @@ public class PrintTree {
 			}
 			sb.append("\n");
 		}
+		// 将最后一个回车符号去掉
+		sb = sb.delete(sb.length() - 1, sb.length());
 		return sb.toString();
 	}
 
@@ -174,9 +176,11 @@ public class PrintTree {
 			int minPosition = Integer.MAX_VALUE;
 			int maxPosition = Integer.MIN_VALUE;
 			for (PrintNode printNode : children) {
-				minPosition = printNode.position < minPosition ? printNode.position : minPosition;
-				maxPosition = printNode.position > maxPosition ? printNode.position : maxPosition;
-				position.getChildrenPositionList().add(printNode.position);
+				if (printNode.node.getParent() == node) {
+					minPosition = printNode.position < minPosition ? printNode.position : minPosition;
+					maxPosition = printNode.position > maxPosition ? printNode.position : maxPosition;
+					position.getChildrenPositionList().add(printNode.position);
+				}
 			}
 			position.setParentPosition((maxPosition - minPosition) / 2 + minPosition);
 			return position;

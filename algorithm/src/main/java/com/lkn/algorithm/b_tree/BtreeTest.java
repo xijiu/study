@@ -44,14 +44,6 @@ public class BtreeTest {
 		addElement(31);
 		addElement(32);
 
-		for (int i = 10; i < 25; i++) {
-			addElement(i);
-		}
-
-		addElement(60);
-		addElement(61);
-		addElement(62);
-
 		levelNodeShow();
 	}
 
@@ -66,5 +58,13 @@ public class BtreeTest {
 		} else {
 			Tree.addElement(root, new Element<>(element));
 		}
+	}
+
+	@Test
+	public void createManyTest() {
+		for (int i = 10; i < 100; i++) {
+			addElement(i);
+		}
+		levelNodeShow();
 	}
 }
