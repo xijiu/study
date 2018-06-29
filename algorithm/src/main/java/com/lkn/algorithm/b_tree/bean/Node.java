@@ -1,4 +1,4 @@
-package com.lkn.algorithm.b_tree.base;
+package com.lkn.algorithm.b_tree.bean;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;

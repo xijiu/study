@@ -4,7 +4,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import com.lkn.algorithm.b_tree.base.Node;
+import com.lkn.algorithm.b_tree.bean.Node;
 import lombok.Getter;
 import lombok.Setter;
 

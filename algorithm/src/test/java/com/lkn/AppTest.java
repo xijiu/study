@@ -2,14 +2,10 @@ package com.lkn;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.lkn.algorithm.b_tree.base.Element;
-import com.lkn.algorithm.b_tree.base.Node;
+import com.lkn.algorithm.b_tree.bean.Element;
 import org.junit.Test;
 
-import java.math.BigDecimal;
 import java.util.List;
-import java.util.Set;
 
 public class AppTest {
 

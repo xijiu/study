@@ -1,4 +1,4 @@
-package com.lkn.algorithm.b_tree.base;
+package com.lkn.algorithm.b_tree.bean;
 
 import lombok.Getter;
 import lombok.Setter;

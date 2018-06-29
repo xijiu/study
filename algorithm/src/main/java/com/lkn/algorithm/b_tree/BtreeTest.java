@@ -1,7 +1,7 @@
 package com.lkn.algorithm.b_tree;
 
-import com.lkn.algorithm.b_tree.base.Element;
-import com.lkn.algorithm.b_tree.base.Node;
+import com.lkn.algorithm.b_tree.bean.Element;
+import com.lkn.algorithm.b_tree.bean.Node;
 import org.junit.Test;
 
 

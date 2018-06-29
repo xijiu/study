@@ -1,8 +1,8 @@
 package com.lkn.algorithm.b_tree;
 
 import com.google.common.base.Objects;
-import com.lkn.algorithm.b_tree.base.Element;
-import com.lkn.algorithm.b_tree.base.Node;
+import com.lkn.algorithm.b_tree.bean.Element;
+import com.lkn.algorithm.b_tree.bean.Node;
 import lombok.Builder;
 
 import java.util.Set;
