@@ -39,4 +39,14 @@ public class Element<T extends Comparable> implements Comparable<Element> {
 	public String toString() {
 		return t.toString();
 	}
+
+	@Override
+	public boolean equals(Object target) {
+		if (target instanceof Element) {
+			if (t.compareTo(((Element) target).t) == 0) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

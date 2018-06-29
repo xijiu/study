@@ -44,12 +44,9 @@ public class BtreeTest {
 		addElement(31);
 		addElement(32);
 
-		levelNodeShow();
-	}
-
-	private void levelNodeShow() {
 		PrintTree.print(root);
 	}
+
 
 	private void addElement(int element) {
 		if (root == null) {
@@ -60,11 +57,43 @@ public class BtreeTest {
 		}
 	}
 
+	private void deleteElement(int element) {
+		TreeDelete.delete(root, new Element<>(element));
+	}
+
 	@Test
 	public void createManyTest() {
-		for (int i = 10; i < 100; i++) {
+		for (int i = 10; i < 70; i++) {
 			addElement(i);
 		}
-		levelNodeShow();
+		PrintTree.print(root);
+	}
+
+	@Test
+	public void deleteTest() {
+		createTree();
+		deleteElement(21);
+		PrintTree.print(root);
+		deleteElement(27);
+		PrintTree.print(root);
+		deleteElement(32);
+		PrintTree.print(root);
+		deleteElement(40);
+		PrintTree.print(root);
+	}
+
+	@Test
+	public void deleteManyTest() {
+		int size = 100;
+		for (int i = 10; i < size; i++) {
+			addElement(i);
+			PrintTree.print(root);
+		}
+		System.out.println(" add 结束 ****************************************");
+		for (int i = 10; i < size; i++) {
+			System.out.println("删除节点 " + i);
+			deleteElement(i);
+			PrintTree.print(root);
+		}
 	}
 }

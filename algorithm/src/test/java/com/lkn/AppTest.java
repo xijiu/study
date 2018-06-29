@@ -1,28 +1,33 @@
 package com.lkn;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.lkn.algorithm.b_tree.base.Element;
+import com.lkn.algorithm.b_tree.base.Node;
 import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
 
 public class AppTest {
 
 
 	@Test
 	public void test() {
-		System.out.println("1,2,3,4");
-		System.out.println("-        -");
-		System.out.println(" -");
-		System.out.println("  -");
-		System.out.println("   -");
-		System.out.println("    -");
+		Element<Integer> element1 = new Element<>(1);
+		Element<Integer> element2 = new Element<>(1);
+		System.out.println(element1.equals(element2));
+		System.out.println(Objects.equal(element1, element2));
 	}
 
 	@Test
 	public void test2() {
 		List<Character> list = Lists.newArrayList();
 		addElement(list, '-', 10);
+		System.out.println(list);
+		addElement(list, '-', 2);
 		System.out.println(list);
 		addElement(list, '-', 2);
 		System.out.println(list);
@@ -39,26 +44,6 @@ public class AppTest {
 		list.add(index, element);
 	}
 
-	@Test
-	public void test3() {
-		calcTwoPoint(0, 10);
-	}
 
-	private int height = 5;
 
-	private void calcTwoPoint(int parentPosition, int childPosition) {
-		int differ = childPosition - parentPosition;
-		for (int i = 0; i < height; i++) {
-			int currLevel = parentPosition + (new BigDecimal(differ).divide(new BigDecimal(height))
-					.multiply(new BigDecimal(i + 1)).intValue());
-			System.out.println(currLevel);
-		}
-	}
-
-	@Test
-	public void test4() {
-		int m = 5;
-		System.out.println(Math.ceil((double) m / 2));
-		System.out.println(Math.ceil((double) m / 2) - 1);
-	}
 }

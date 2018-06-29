@@ -45,9 +45,21 @@ public class PrintTree {
 		HORIZONTALLY_STR = sb.toString();
 	}
 
-	public static void print(Node root) {
+	/**
+	 * 打印一颗B树
+	 * @param node B树中的任意一个节点
+	 */
+	public static void print(Node node) {
+		while (node.getParent() != null) {
+			node = node.getParent();
+		}
+		printFromRoot(node);
+	}
+
+	private static void printFromRoot(Node root) {
 		Multimap<Integer, PrintNode> map = ArrayListMultimap.create();
-		Tree.bfs(root, (node, level) -> map.put(level, new PrintNode(node, level)));
+		Map<Integer, AtomicInteger> counter = Maps.newHashMap();
+		Tree.bfs(root, (node, level) -> map.put(level, new PrintNode(node, level, counter)));
 		print(map);
 	}
 
@@ -70,6 +82,13 @@ public class PrintTree {
 
 			appendFatherLevelNodes(map, i, totalPrintList);
 		}
+		// 只有根节点的情况
+		if (totalPrintList.size() == 0) {
+			Collection<PrintNode> printNodes = map.get(0);
+			for (PrintNode printNode : printNodes) {
+				totalPrintList.add(printNode.node.toString());
+			}
+		}
 		printResult(totalPrintList);
 	}
 
@@ -81,6 +100,8 @@ public class PrintTree {
 		for (int i = totalPrintList.size() - 1; i >= 0; i--) {
 			System.out.println(totalPrintList.get(i));
 		}
+		System.out.println();
+		System.out.println();
 	}
 
 	private static String appendLinesToString(List<List<Character>> lists) {
@@ -250,20 +271,19 @@ public class PrintTree {
 	}
 
 	private static class PrintNode {
-		private static final Map<Integer, AtomicInteger> COUNTER = Maps.newHashMap();
 		private Node node;
 		private int level;
 		private int index;
 		// 在画图中该节点所在的横向位置，默认是-1
 		private int position = -1;
 
-		public PrintNode(Node node, int level) {
+		public PrintNode(Node node, int level, Map<Integer, AtomicInteger> counter) {
 			this.node = node;
 			this.level = level;
-			AtomicInteger atomicInteger = COUNTER.get(level);
+			AtomicInteger atomicInteger = counter.get(level);
 			if (atomicInteger == null) {
 				atomicInteger = new AtomicInteger(0);
-				COUNTER.put(level, atomicInteger);
+				counter.put(level, atomicInteger);
 			}
 			this.index = atomicInteger.getAndIncrement();
 		}
