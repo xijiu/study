@@ -21,6 +21,14 @@ public class TreeAdd {
 	 */
 	public static void add(Node node, Element element) {
 		addNewElementNormally(node, element);
+		adjust(node);
+	}
+
+	/**
+	 * 节点调整
+	 * @param node	目标节点
+	 */
+	public static void adjust(Node node) {
 		// 如果元素的数量已经大于等于阶数，那么对当前节点进行分裂操作
 		if (node.getElements().size() >= Node.ORDER_NUM) {
 			SplitBean splitBean = splitNode(node);

@@ -90,6 +90,18 @@
                 <version>1.9.3</version>
             </dependency>
 
+            <dependency>
+                <groupId>org.apache.sshd</groupId>
+                <artifactId>sshd-core</artifactId>
+                <version>1.7.0</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.jvnet.hudson</groupId>
+                <artifactId>ganymed-ssh2</artifactId>
+                <version>build210-hudson-1</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 

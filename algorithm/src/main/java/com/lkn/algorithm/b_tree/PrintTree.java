@@ -29,6 +29,9 @@ public class PrintTree {
 
 	private static final String VERTICALLY_STR;
 
+	// 横向间隔的箭头
+	private static final String VERTICALLY_ARROWS_STR;
+
 	private static final String HORIZONTALLY_STR;
 
 	static {
@@ -43,6 +46,13 @@ public class PrintTree {
 			sb.append(" ");
 		}
 		HORIZONTALLY_STR = sb.toString();
+
+		sb = new StringBuilder();
+		for (int i = 0; i < VERTICALLY - 1; i++) {
+			sb.append("-");
+		}
+		sb.append(">");
+		VERTICALLY_ARROWS_STR = sb.toString();
 	}
 
 	/**
@@ -75,7 +85,13 @@ public class PrintTree {
 				// 将当前层级的所有节点当做字符串拼接起来，位数不够的用空格填充
 				for (PrintNode printNode : nodes) {
 					String nodeStr = fillBlank(printNode.node.toString());
-					sb.append(nodeStr).append(VERTICALLY_STR);
+					sb.append(nodeStr);
+					// 区分是B树还是B+树；B+树的叶子节点间会有箭头连接
+					if (printNode.node.getNextLeafNode() == null) {
+						sb.append(VERTICALLY_STR);
+					} else {
+						sb.append(VERTICALLY_ARROWS_STR);
+					}
 				}
 				totalPrintList.add(sb.toString());
 			}
