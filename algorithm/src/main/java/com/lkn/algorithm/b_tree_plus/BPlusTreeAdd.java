@@ -84,6 +84,13 @@ public class BPlusTreeAdd {
 			leftNode.setNextLeafNode(rightNode);
 			parent.addElement(middleElement);
 			adjustFatherElement(elementArr, leftNode, rightNode, middleElement, node);
+			// 将叶子节点的 nextLeafNode 属性重新赋值
+			for (Node lookup : parent.getChildrenNode()) {
+				if (lookup.getNextLeafNode() == node) {
+					lookup.setNextLeafNode(leftNode);
+					break;
+				}
+			}
 			adjust(parent);
 		} else {
 			Node leftNode = new Node(node);

@@ -2,6 +2,7 @@ package com.lkn;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
+import com.lkn.algorithm.b_tree.TreeDelete;
 import com.lkn.algorithm.b_tree.bean.Element;
 import org.junit.Test;
 
@@ -12,10 +13,7 @@ public class AppTest {
 
 	@Test
 	public void test() {
-		Element<Integer> element1 = new Element<>(1);
-		Element<Integer> element2 = new Element<>(1);
-		System.out.println(element1.equals(element2));
-		System.out.println(Objects.equal(element1, element2));
+		System.out.println(TreeDelete.MIN_ELEMENT_NUM_PER_NODE);
 	}
 
 	@Test

@@ -14,7 +14,7 @@ import java.util.Set;
 public class TreeDelete {
 
 	// 每个节点中最少存在的元素个数
-	private static final int MIN_ELEMENT_NUM_PER_NODE = (int) (Math.ceil((double) Node.ORDER_NUM / 2) - 1);
+	public static final int MIN_ELEMENT_NUM_PER_NODE = (int) (Math.ceil((double) Node.ORDER_NUM / 2) - 1);
 
 
 	/**
@@ -54,7 +54,7 @@ public class TreeDelete {
 	 *
 	 * @param targetNode
 	 */
-	private static void doAdjust(Node targetNode) {
+	public static void doAdjust(Node targetNode) {
 		if (targetNode.getParent() != null && targetNode.getElements().size() < MIN_ELEMENT_NUM_PER_NODE) {
 			// 获取兄弟节点
 			BrotherNodeBean brotherNodeBean = getMoreElementsBrotherNode(targetNode);
@@ -116,6 +116,7 @@ public class TreeDelete {
 			targetFatherElement.setLeftNode(leftElement.getRightNode());
 			targetFatherElement.setRightNode(null);
 			parent.removeElement(targetFatherElement);
+			leftNode.getMaxElement().setRightNode(null);
 			doAdjust(parent);
 		}
 	}
@@ -375,7 +376,6 @@ public class TreeDelete {
 		}
 		return directDescendantNode;
 	}
-
 
 	/**
 	 * 寻找该元素所属的节点

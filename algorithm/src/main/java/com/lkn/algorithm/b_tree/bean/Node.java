@@ -66,6 +66,21 @@ public class Node {
 		elements.remove(element);
 	}
 
+	public Element getMinElement() {
+		for (Element element : elements) {
+			return element;
+		}
+		throw new RuntimeException();
+	}
+
+	public Element getMaxElement() {
+		Element max = null;
+		for (Element element : elements) {
+			max = element;
+		}
+		return max;
+	}
+
 	public List<Node> getChildrenNode() {
 		List<Node> list = Lists.newArrayList();
 		for (Element element : elements) {

@@ -82,18 +82,36 @@ public class BtreeTest {
 		PrintTree.print(root);
 	}
 
+	private void reset() {
+		root = null;
+	}
+
 	@Test
 	public void deleteManyTest() {
-		int size = 100;
-		for (int i = 10; i < size; i++) {
-			addElement(i);
+		int begin = 10;
+		int end = 100;
+		addBatchElement(begin, end);
+		for (int i = 10; i < end; i++) {
+			System.out.println("删除节点 " + i);
+			deleteElement(i);
 			PrintTree.print(root);
 		}
-		System.out.println(" add 结束 ****************************************");
-		for (int i = 10; i < size; i++) {
+
+		reset();
+
+		addBatchElement(begin, end);
+		for (int i = end - 1; i >= 10; i--) {
 			System.out.println("删除节点 " + i);
 			deleteElement(i);
 			PrintTree.print(root);
 		}
 	}
+
+	private void addBatchElement(int begin, int end) {
+		for (int i = begin; i < end; i++) {
+			addElement(i);
+			PrintTree.print(root);
+		}
+	}
+
 }
