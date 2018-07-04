@@ -153,7 +153,6 @@ public class BtreeTest {
 			Integer ele = getRandomIndex(list);
 			if (ele != null) {
 				addElement(ele);
-				PrintTree.print(root);
 			} else {
 				break;
 			}
@@ -174,7 +173,6 @@ public class BtreeTest {
 			Integer ele = getRandomIndex(list);
 			if (ele != null) {
 				deleteElement(ele);
-				PrintTree.print(root);
 			} else {
 				break;
 			}

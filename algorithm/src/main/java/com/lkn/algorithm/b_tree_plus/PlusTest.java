@@ -18,14 +18,14 @@ public class PlusTest extends BtreeTest {
 		if (root == null) {
 			root = new Node(null);
 		}
-		System.out.println("添加元素" + element);
+		System.out.println("添加元素 ====> " + element);
 		BPlusTreeAdd.add(root, new Element<>(element));
 		PrintTree.print(root);
 	}
 
 	@Override
 	protected void deleteElement(int element) {
-		System.out.println("删除元素" + element);
+		System.out.println("删除元素 ====> " + element);
 		BPlusTreeDelete.delete(root, new Element<>(element));
 		PrintTree.print(root);
 	}
