@@ -1,5 +1,6 @@
 package com.lkn.algorithm.b_tree_plus;
 
+import com.lkn.algorithm.b_tree.BtreeTest;
 import com.lkn.algorithm.b_tree.PrintTree;
 import com.lkn.algorithm.b_tree.bean.Element;
 import com.lkn.algorithm.b_tree.bean.Node;
@@ -9,23 +10,24 @@ import org.junit.Test;
  * @author likangning
  * @since 2018/6/29 下午5:43
  */
-public class PlusTest {
-	// 根节点
-	private Node root;
+public class PlusTest extends BtreeTest {
 
-	private void reset() {
-		root = null;
-	}
 
-	private void addElement(int element) {
+	@Override
+	protected void addElement(int element) {
 		if (root == null) {
 			root = new Node(null);
 		}
+		System.out.println("添加元素" + element);
 		BPlusTreeAdd.add(root, new Element<>(element));
+		PrintTree.print(root);
 	}
 
-	private void deleteElement(int element) {
+	@Override
+	protected void deleteElement(int element) {
+		System.out.println("删除元素" + element);
 		BPlusTreeDelete.delete(root, new Element<>(element));
+		PrintTree.print(root);
 	}
 
 
@@ -40,30 +42,16 @@ public class PlusTest {
 	}
 
 
+
 	@Test
-	public void deleteTest() {
-		int begin = 10;
-		int end = 100;
-		for (int i = begin; i <= end; i++) {
-			addElement(i);
-		}
-		PrintTree.print(root);
-		for (int i = begin; i <= end; i++) {
-			System.out.println("删除节点" + i);
-			deleteElement(i);
-			PrintTree.print(root);
-		}
+	public void bPlusTreeDeleteRandom() {
+		int begin = 1;
+		int end = 99;
 
-		reset();
-
-		for (int i = begin; i <= end; i++) {
-			addElement(i);
-		}
+		randomAddElement(begin, end);
 		PrintTree.print(root);
-		for (int i = end; i >= begin; i--) {
-			System.out.println("删除节点" + i);
-			deleteElement(i);
-			PrintTree.print(root);
-		}
+		randomDeleteElement(begin, end);
 	}
+
+
 }

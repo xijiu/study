@@ -36,12 +36,29 @@ public class Node {
 	 * 只有当前节点为叶子节点时，此项才有值，且最右侧的叶子节点此项也为null
 	 * 注：此项内容只服务于B+树
 	 */
-	@Setter
 	@Getter
 	private Node nextLeafNode;
 
+	/**
+	 * 当前叶子节点的上一个叶子节点
+	 */
+	@Getter
+	private Node beforeLeafNode;
+
 	public Node(Node parent) {
 		this.parent = parent;
+	}
+
+	/**
+	 * 设置当前叶子节点的下一个节点
+	 * 同时将下一个节点的前置节点设置为当前节点
+	 *
+	 */
+	public void setNextLeafNode(Node nextLeafNode) {
+		this.nextLeafNode = nextLeafNode;
+		if (nextLeafNode != null) {
+			nextLeafNode.beforeLeafNode = this;
+		}
 	}
 
 	public Set<Element> getElements() {

@@ -84,13 +84,6 @@ public class BPlusTreeAdd {
 			leftNode.setNextLeafNode(rightNode);
 			parent.addElement(middleElement);
 			adjustFatherElement(elementArr, leftNode, rightNode, middleElement, node);
-			// 将叶子节点的 nextLeafNode 属性重新赋值
-			for (Node lookup : parent.getChildrenNode()) {
-				if (lookup.getNextLeafNode() == node) {
-					lookup.setNextLeafNode(leftNode);
-					break;
-				}
-			}
 			adjust(parent);
 		} else {
 			Node leftNode = new Node(node);
@@ -109,27 +102,40 @@ public class BPlusTreeAdd {
 		}
 	}
 
+	/**
+	 * 父节点调整
+	 * @param elementArr
+	 * @param leftNode
+	 * @param rightNode
+	 * @param middleElement
+	 * @param targetNode
+	 */
 	private static void adjustFatherElement(Element[] elementArr, Node leftNode, Node rightNode, Element middleElement, Node targetNode) {
 		Element fatherLeftElement = elementArr[0];
-		Element targetElement = elementArr[1];
-		Element fatherRightElement = elementArr[2];
-		if (fatherRightElement != null) {
-			targetElement.setLeftNode(leftNode);
-			targetElement.setRightNode(null);
-			middleElement.setLeftNode(rightNode);
+		Element targetFatherElement = elementArr[1];
+		Element rightFatherElement = elementArr[2];
+		if (rightFatherElement != null) {
+			targetFatherElement.setLeftNode(rightNode);
+			targetFatherElement.setRightNode(null);
+			middleElement.setLeftNode(leftNode);
 			middleElement.setRightNode(null);
 		} else {
-			if (Objects.equal(targetElement.getLeftNode(), targetNode)) {
-				middleElement.setLeftNode(rightNode);
-				middleElement.setRightNode(targetElement.getRightNode());
-				targetElement.setLeftNode(leftNode);
-				targetElement.setRightNode(null);
-			} else if (Objects.equal(targetElement.getRightNode(), targetNode)) {
+			if (Objects.equal(targetFatherElement.getLeftNode(), targetNode)) {
+				middleElement.setLeftNode(leftNode);
+				middleElement.setRightNode(null);
+				targetFatherElement.setLeftNode(rightNode);
+			} else if (Objects.equal(targetFatherElement.getRightNode(), targetNode)) {
 				middleElement.setLeftNode(leftNode);
 				middleElement.setRightNode(rightNode);
-				targetElement.setRightNode(null);
+				targetFatherElement.setRightNode(null);
 			}
 		}
+		// 维护叶子节点的关联关系
+		Node beforeLeafNode = targetNode.getBeforeLeafNode();
+		if (beforeLeafNode != null) {
+			beforeLeafNode.setNextLeafNode(leftNode);
+		}
+		rightNode.setNextLeafNode(targetNode.getNextLeafNode());
 	}
 
 	private static Element[] getFatherElementArr(Node node) {
@@ -193,29 +199,49 @@ public class BPlusTreeAdd {
 	}
 
 	/**
-	 * 找到元素element隶属的叶子节点
-	 * @param node	根节点
-	 * @param newElement	新加元素
-	 * @return	该新元素的归属节点
+	 * 寻找一个新元素应该插入的节点位置
 	 */
 	private static Node findPrepareAddNode(Node node, Element newElement) {
-		Parasite<Node> parasite = new Parasite<>();
-		Tree.bfs(node, (currNode, level) -> {
-			// 如果是叶子节点，并且还没有找到合适的归属节点
-			if (currNode.isLeaf() && parasite.get() == null) {
-				// 已经是最后一个叶子节点了
-				if (currNode.getNextLeafNode() == null) {
-					parasite.set(currNode);
+		// 如果当前节点既是根节点，又是叶子节点，那么直接返回
+		if (node.isLeaf()) {
+			return node;
+		}
+		Element lessElement = null;
+		Element moreElement = null;
+		Set<Element> elements = node.getElements();
+		for (Element lookup : elements) {
+			int compare = lookup.compareTo(newElement);
+			if (compare == 0) {
+				Node leftNode = lookup.getLeftNode();
+				Node rightNode = lookup.getRightNode();
+				if (leftNode != null && leftNode.getElements().contains(newElement)) {
+					return findPrepareAddNode(leftNode, newElement);
 				}
-				for (Element lookup : currNode.getElements()) {
-					if (newElement.compareTo(lookup) < 0) {
-						parasite.set(currNode);
-						break;
-					}
+				if (rightNode != null && rightNode.getElements().contains(newElement)) {
+					return findPrepareAddNode(rightNode, newElement);
 				}
+				if (rightNode != null) {
+					return findPrepareAddNode(rightNode, newElement);
+				} else if (leftNode != null) {
+					return findPrepareAddNode(leftNode, newElement);
+				}
+			} else if (compare < 0) {
+				// 当前元素比新元素小
+				lessElement = lookup;
+			} else {
+				// 当前元素比新元素大
+				moreElement = lookup;
+				break;
 			}
-		});
-		return parasite.get();
+		}
+		if (lessElement != null && moreElement != null) {
+			return findPrepareAddNode(moreElement.getLeftNode(), newElement);
+		} else if (lessElement != null) {
+			return findPrepareAddNode(lessElement.getRightNode(), newElement);
+		} else if (moreElement != null) {
+			return findPrepareAddNode(moreElement.getLeftNode(), newElement);
+		}
+		throw new RuntimeException();
 	}
 
 	/**

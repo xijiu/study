@@ -172,11 +172,12 @@ public class TreeDelete {
 	private static void borrowElementFromBrotherNode(Node targetNode, BrotherNodeBean brotherNodeBean) {
 		Node parent = targetNode.getParent();
 		Node brotherNode = brotherNodeBean.brotherNode;
-		Element fatherElement = getFatherElement(brotherNode);
+		Element brotherFatherElement = getFatherElement(brotherNode);
+		Element targetFatherElement = getFatherElement(targetNode);
 		// 父元素左子孩子
-		Node fatherChildLeftNode = fatherElement.getLeftNode();
+		Node fatherChildLeftNode = brotherFatherElement.getLeftNode();
 		// 父元素右子孩子
-		Node fatherChildRightNode = fatherElement.getRightNode();
+		Node fatherChildRightNode = brotherFatherElement.getRightNode();
 		boolean left = brotherNodeBean.left;
 		Element brotherRemoveElement;
 		// 如果是左边兄弟节点
@@ -192,31 +193,65 @@ public class TreeDelete {
 			// 替换父节点元素的功能
 			brotherRemoveElement.setLeftNode(fatherChildLeftNode);
 			brotherRemoveElement.setRightNode(fatherChildRightNode);
-			parent.removeElement(fatherElement);
+			parent.removeElement(brotherFatherElement);
 			parent.addElement(brotherRemoveElement);
 
 			// 处理目标节点
-			fatherElement.setLeftNode(brotherRightNode);
-			fatherElement.setRightNode(null);
-			targetNode.addElement(fatherElement);
+			brotherFatherElement.setLeftNode(brotherRightNode);
+			brotherFatherElement.setRightNode(null);
+			targetNode.addElement(brotherFatherElement);
+			if (brotherRightNode != null) {
+				brotherRightNode.setParent(targetNode);
+			}
 		} else {
-			// 先处理兄弟节点
-			brotherRemoveElement = findFirstElement(brotherNode);
-			brotherNode.removeElement(brotherRemoveElement);
-			Node brotherLeftNode = brotherRemoveElement.getLeftNode();
+			if (Objects.equal(targetFatherElement, brotherFatherElement)) {
+				// 先处理兄弟节点
+				brotherRemoveElement = findFirstElement(brotherNode);
+				brotherNode.removeElement(brotherRemoveElement);
+				Node brotherLeftNode = brotherRemoveElement.getLeftNode();
 
-			// 处理父节点
-			brotherRemoveElement.setLeftNode(fatherChildLeftNode);
-			brotherRemoveElement.setRightNode(fatherChildRightNode);
-			parent.removeElement(fatherElement);
-			parent.addElement(brotherRemoveElement);
+				// 处理父节点
+				brotherRemoveElement.setLeftNode(fatherChildLeftNode);
+				brotherRemoveElement.setRightNode(fatherChildRightNode);
+				parent.removeElement(brotherFatherElement);
+				parent.addElement(brotherRemoveElement);
 
-			// 处理目标节点
-			Element leftLastElement = findLastElement(targetNode);
-			fatherElement.setLeftNode(leftLastElement.getRightNode());
-			leftLastElement.setRightNode(null);
-			fatherElement.setRightNode(brotherLeftNode);
-			targetNode.addElement(fatherElement);
+				// 处理目标节点
+				Element leftLastElement = findLastElement(targetNode);
+				brotherFatherElement.setLeftNode(leftLastElement.getRightNode());
+				leftLastElement.setRightNode(null);
+				brotherFatherElement.setRightNode(brotherLeftNode);
+				targetNode.addElement(brotherFatherElement);
+				if (brotherLeftNode != null) {
+					brotherLeftNode.setParent(targetNode);
+				}
+			} else {
+				// 父元素左子孩子
+				fatherChildLeftNode = targetFatherElement.getLeftNode();
+				// 父元素右子孩子
+				fatherChildRightNode = targetFatherElement.getRightNode();
+				// 先处理兄弟节点
+				brotherRemoveElement = findFirstElement(brotherNode);
+				brotherNode.removeElement(brotherRemoveElement);
+				Node brotherLeftNode = brotherRemoveElement.getLeftNode();
+
+				// 处理父节点
+				brotherRemoveElement.setLeftNode(fatherChildLeftNode);
+				brotherRemoveElement.setRightNode(fatherChildRightNode);
+				parent.removeElement(targetFatherElement);
+				parent.addElement(brotherRemoveElement);
+
+				// 处理目标节点
+				Element leftLastElement = findLastElement(targetNode);
+				targetFatherElement.setLeftNode(leftLastElement.getRightNode());
+				leftLastElement.setRightNode(null);
+				targetFatherElement.setRightNode(brotherLeftNode);
+				targetNode.addElement(targetFatherElement);
+				if (brotherLeftNode != null) {
+					brotherLeftNode.setParent(targetNode);
+				}
+			}
+
 		}
 
 	}

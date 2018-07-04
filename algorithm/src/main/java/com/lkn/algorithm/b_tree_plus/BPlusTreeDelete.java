@@ -152,13 +152,10 @@ public class BPlusTreeDelete {
 		beforeCurrentElement.setRightNode(targetNode);
 
 		// 维护叶子节点中的 nextLeafNode 变量
-		for (Node child : parent.getChildrenNode()) {
-			if (Objects.equal(child.getNextLeafNode(), leftBrotherNode)) {
-				child.setNextLeafNode(targetNode);
-				break;
-			}
+		Node beforeLeftBrotherNode = leftBrotherNode.getBeforeLeafNode();
+		if (beforeLeftBrotherNode != null) {
+			beforeLeftBrotherNode.setNextLeafNode(targetNode);
 		}
-
 	}
 
 	private static void mergeWithLeftNodeNotSameParent(Node targetNode, Element targetParentElement,
@@ -180,7 +177,7 @@ public class BPlusTreeDelete {
 		targetNode.addElements(rightBrotherNode.getElements());
 		leftBrotherParentElement.setRightNode(targetNode);
 		// 维护叶子节点中的 nextLeafNode 变量
-		targetNode.setNextLeafNode(null);
+		targetNode.setNextLeafNode(rightBrotherNode.getNextLeafNode());
 	}
 
 
@@ -191,11 +188,9 @@ public class BPlusTreeDelete {
 		rightBrotherNode.addElements(targetNode.getElements());
 
 		// 维护叶子节点中的 nextLeafNode 变量
-		for (Node child : parent.getChildrenNode()) {
-			if (Objects.equal(child.getNextLeafNode(), targetNode)) {
-				child.setNextLeafNode(rightBrotherNode);
-				break;
-			}
+		Node beforeTargetNode = targetNode.getBeforeLeafNode();
+		if (beforeTargetNode != null) {
+			beforeTargetNode.setNextLeafNode(rightBrotherNode);
 		}
 	}
 
@@ -219,12 +214,23 @@ public class BPlusTreeDelete {
 		if (rightBrotherNode != null && rightBrotherNode.getElements().size() > MIN_ELEMENT_NUM_PER_NODE) {
 			borrowFromRightBrother(targetNode, targetParentElement, rightBrotherNode);
 		} else if (leftBrotherNode != null && leftBrotherNode.getElements().size() > MIN_ELEMENT_NUM_PER_NODE) {
-			borrowFromLeftBrother(targetNode, targetParentElement, leftBrotherNode);
+			if (Objects.equal(leftBrotherParentElement, targetParentElement)) {
+				borrowFromLeftBrotherSameParent(targetNode, targetParentElement, leftBrotherNode);
+			} else {
+				borrowFromLeftBrotherNotSameParent(targetNode, leftBrotherNode, leftBrotherParentElement);
+			}
 		}
 
 	}
 
-	private static void borrowFromLeftBrother(Node targetNode, Element targetParentElement, Node leftBrotherNode) {
+	private static void borrowFromLeftBrotherNotSameParent(Node targetNode, Node leftBrotherNode, Element leftBrotherParentElement) {
+		Element maxElement = leftBrotherNode.getMaxElement();
+		leftBrotherNode.removeElement(maxElement);
+		leftBrotherParentElement.setT(maxElement.getT());
+		targetNode.addElement(maxElement);
+	}
+
+	private static void borrowFromLeftBrotherSameParent(Node targetNode, Element targetParentElement, Node leftBrotherNode) {
 		Element maxElement = leftBrotherNode.getMaxElement();
 		leftBrotherNode.removeElement(maxElement);
 		targetParentElement.setT(maxElement.getT());
@@ -266,15 +272,18 @@ public class BPlusTreeDelete {
 	 */
 	private static NodeRelation buildNodeRelation(Node node) {
 		NodeRelation nodeRelation = new NodeRelation();
+		Node parent = node.getParent();
 		nodeRelation.targetNode = node;
-		nodeRelation.rightBrotherNode = node.getNextLeafNode();
-		for (Node lookup : node.getParent().getChildrenNode()) {
-			if (lookup.getNextLeafNode() == node) {
+		// 获取目标节点的右兄弟节点；如果右兄弟节点在父节点的子节点中，那么返回，否则为null
+		nodeRelation.rightBrotherNode = parent.getChildrenNode().contains(node.getNextLeafNode())
+				? node.getNextLeafNode() : null;
+		for (Node lookup : parent.getChildrenNode()) {
+			if (Objects.equal(lookup.getNextLeafNode(), node)) {
 				nodeRelation.leftBrotherNode = lookup;
 			}
 		}
 
-		for (Element parentElement : node.getParent().getElements()) {
+		for (Element parentElement : parent.getElements()) {
 			if (Objects.equal(parentElement.getLeftNode(), node) || Objects.equal(parentElement.getRightNode(), node)) {
 				nodeRelation.targetParentElement = parentElement;
 			}

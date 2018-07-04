@@ -1,9 +1,12 @@
 package com.lkn.algorithm.b_tree;
 
+import com.google.common.collect.Lists;
 import com.lkn.algorithm.b_tree.bean.Element;
 import com.lkn.algorithm.b_tree.bean.Node;
 import org.junit.Test;
 
+import java.util.List;
+import java.util.Random;
 
 
 /**
@@ -14,7 +17,7 @@ import org.junit.Test;
  */
 public class BtreeTest {
 	// 根节点
-	private Node root;
+	protected Node root;
 
 	@Test
 	public void createTree() {
@@ -48,7 +51,7 @@ public class BtreeTest {
 	}
 
 
-	private void addElement(int element) {
+	protected void addElement(int element) {
 		if (root == null) {
 			root = new Node(null);
 			TreeAdd.add(root, new Element<>(element));
@@ -57,7 +60,7 @@ public class BtreeTest {
 		}
 	}
 
-	private void deleteElement(int element) {
+	protected void deleteElement(int element) {
 		TreeDelete.delete(root, new Element<>(element));
 	}
 
@@ -82,7 +85,7 @@ public class BtreeTest {
 		PrintTree.print(root);
 	}
 
-	private void reset() {
+	protected void reset() {
 		root = null;
 	}
 
@@ -100,7 +103,7 @@ public class BtreeTest {
 		reset();
 
 		addBatchElement(begin, end);
-		for (int i = end - 1; i >= 10; i--) {
+		for (int i = end; i >= 10; i--) {
 			System.out.println("删除节点 " + i);
 			deleteElement(i);
 			PrintTree.print(root);
@@ -108,10 +111,86 @@ public class BtreeTest {
 	}
 
 	private void addBatchElement(int begin, int end) {
-		for (int i = begin; i < end; i++) {
+		for (int i = begin; i <= end; i++) {
 			addElement(i);
-			PrintTree.print(root);
 		}
 	}
+
+	@Test
+	public void addRandom() {
+		int begin = 1;
+		int end = 100;
+		randomAddElement(begin, end);
+	}
+
+
+
+	protected List<Integer> initList(int begin, int end) {
+		List<Integer> list = Lists.newArrayList();
+		for (int i = begin; i <= end; i++) {
+			list.add(i);
+		}
+		return list;
+	}
+
+	@Test
+	public void deleteRandomTest() {
+		int begin = 1;
+		int end = 100;
+		randomAddElement(begin, end);
+		PrintTree.print(root);
+		randomDeleteElement(begin, end);
+	}
+
+	/**
+	 * 随机添加元素
+	 * @param begin
+	 * @param end
+	 */
+	protected void randomAddElement(int begin, int end) {
+		List<Integer> list = initList(begin, end);
+		while (true) {
+			Integer ele = getRandomIndex(list);
+			if (ele != null) {
+				System.out.println("B+树添加元素 " + ele);
+				addElement(ele);
+				PrintTree.print(root);
+			} else {
+				break;
+			}
+		}
+	}
+
+	/**
+	 * 随机删除元素
+	 * @param begin
+	 * @param end
+	 */
+	protected void randomDeleteElement(int begin, int end) {
+		List<Integer> list = Lists.newArrayList();
+		for (int i = begin; i <= end; i++) {
+			list.add(i);
+		}
+		while (true) {
+			Integer ele = getRandomIndex(list);
+			if (ele != null) {
+				System.out.println("删除元素 " + ele);
+				deleteElement(ele);
+				PrintTree.print(root);
+			} else {
+				break;
+			}
+		}
+	}
+
+	private Integer getRandomIndex(List<Integer> list) {
+		if (list.size() == 0) {
+			return null;
+		}
+		Random random = new Random();
+		int index = random.nextInt(list.size());
+		return list.remove(index);
+	}
+
 
 }
