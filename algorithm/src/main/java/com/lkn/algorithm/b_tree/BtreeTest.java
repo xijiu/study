@@ -152,7 +152,6 @@ public class BtreeTest {
 		while (true) {
 			Integer ele = getRandomIndex(list);
 			if (ele != null) {
-				System.out.println("B+树添加元素 " + ele);
 				addElement(ele);
 				PrintTree.print(root);
 			} else {
@@ -174,7 +173,6 @@ public class BtreeTest {
 		while (true) {
 			Integer ele = getRandomIndex(list);
 			if (ele != null) {
-				System.out.println("删除元素 " + ele);
 				deleteElement(ele);
 				PrintTree.print(root);
 			} else {
