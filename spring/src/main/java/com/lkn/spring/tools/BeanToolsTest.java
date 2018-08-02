@@ -26,6 +26,9 @@ public class BeanToolsTest {
 		Object name = PropertyUtils.getProperty(user, "name");
 		System.out.println(name.getClass().getName());
 		System.out.println(name);
+
+		PropertyUtils.setProperty(user, "name", "李康宁");
+		System.out.println(user);
 	}
 
 	/**

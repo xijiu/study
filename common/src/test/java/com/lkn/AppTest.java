@@ -1,5 +1,6 @@
 package com.lkn;
 
+import com.google.common.base.CaseFormat;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import org.junit.Test;
@@ -23,6 +24,8 @@ public class AppTest {
 
 	@Test
 	public void test() {
+		String column = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, "Spring__Test");
+		System.out.println(column);
 	}
 
 	private boolean isCollectionNullOrEmpty(Collection<?> collection) {
