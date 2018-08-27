@@ -15,6 +15,7 @@
         <module>rpc</module>
         <module>design-mode</module>
         <module>algorithm</module>
+        <module>machine-learning</module>
     </modules>
     <packaging>pom</packaging>
 
