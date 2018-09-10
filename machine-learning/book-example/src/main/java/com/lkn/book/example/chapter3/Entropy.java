@@ -1,4 +1,4 @@
-package com.lkn.chapter3;
+package com.lkn.book.example.chapter3;
 
 import com.google.common.collect.Maps;
 import org.junit.Test;
