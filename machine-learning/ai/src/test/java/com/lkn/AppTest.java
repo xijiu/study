@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.junit.Test;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -55,4 +56,29 @@ public class AppTest {
 		Collections.sort(list);
 		System.out.println(list);
 	}
+
+	@Test
+	public void calcTest() {
+		print(new BigDecimal(3));
+		print(new BigDecimal(3.0000000010000001D));
+		print(new BigDecimal(4));
+		print(new BigDecimal(5));
+	}
+
+	private void print(BigDecimal x) {
+		BigDecimal y = calc(x);
+		System.out.println("[" + x + "," + y + "]");
+	}
+
+	/**
+	 * 二次方程求解
+	 * y = 4x*x + 2x + 9
+	 */
+	private BigDecimal calc(BigDecimal x) {
+		BigDecimal result1 = x.multiply(x).multiply(new BigDecimal(4));
+		BigDecimal result2 = x.multiply(new BigDecimal(2));
+		return result1.add(result2).add(new BigDecimal(9));
+	}
+
+
 }
