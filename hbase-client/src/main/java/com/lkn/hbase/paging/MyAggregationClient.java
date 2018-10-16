@@ -21,7 +21,7 @@ public class MyAggregationClient extends ConnHbase {
         //提高RPC通信时长
         configuration.setLong("hbase.rpc.timeout", 600000);
         //设置Scan缓存
-        configuration.setLong("hbase.client.scanner.caching", 1000);
+        configuration.setLong("hbase.jdk_client.scanner.caching", 1000);
         Configuration configuration = HBaseConfiguration.create(super.configuration);
         AggregationClient aggregationClient = new AggregationClient(configuration);
         Scan scan = customerScan();

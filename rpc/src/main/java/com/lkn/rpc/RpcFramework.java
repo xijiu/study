@@ -99,7 +99,7 @@ public class RpcFramework {
 		if (port <= 0 || port > 65535) {
 			throw new IllegalArgumentException("Invalid port " + port);
 		}
-		System.out.println("Get remote service " + interfaceClass.getName() + " from server " + host + ":" + port);
+		System.out.println("Get remote service " + interfaceClass.getName() + " from jdk_server " + host + ":" + port);
 		return (T) Proxy.newProxyInstance(interfaceClass.getClassLoader(), new Class<?>[] {interfaceClass}, new InvocationHandler() {
 			public Object invoke(Object proxy, Method method, Object[] arguments) throws Throwable {
 				Socket socket = new Socket(host, port);
