@@ -12,7 +12,6 @@ import lombok.ToString;
  * @author likangning
  * @since 2018/7/11 上午8:11
  */
-@ToString
 public class Node<T extends Comparable> {
 
 	/**
@@ -47,6 +46,11 @@ public class Node<T extends Comparable> {
 	@Getter
 	@Setter
 	private NodeType nodeType;
+
+	public Node(T data) {
+		setData(data);
+		parent = null;
+	}
 
 
 	public void setLeftChild(Node<T> leftChild) {
@@ -109,6 +113,6 @@ public class Node<T extends Comparable> {
 	 */
 	public enum Position {
 		LEFT,
-		RIGHT;
+		RIGHT
 	}
 }
