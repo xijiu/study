@@ -1,12 +1,9 @@
 package com.lkn.algorithm.r_b_tree.test;
 
-import com.google.common.collect.Sets;
 import com.lkn.algorithm.r_b_tree.Node;
 import com.lkn.algorithm.r_b_tree.PrintRedBlackTree;
 import com.lkn.algorithm.r_b_tree.Tree;
 import org.junit.Test;
-
-import java.util.Set;
 
 /**
  * @author likangning
@@ -14,17 +11,6 @@ import java.util.Set;
  */
 public class TreeTest {
 	private Tree<Integer> tree = new Tree<>();
-
-	/**
-	 * 添加节点测试
-	 */
-	@Test
-	public void addNodeTest() {
-		add(41);
-		add(38);
-		add(31);
-		PrintRedBlackTree.print(tree);
-	}
 
 	/**
 	 * 添加节点测试
@@ -59,15 +45,5 @@ public class TreeTest {
 		PrintRedBlackTree.print(tree);
 		System.out.println();
 		System.out.println();
-	}
-
-	@Test
-	public void test3() {
-		Node<Integer> node1 = new Node<>(10);
-		Node<Integer> node2 = new Node<>(8);
-		Set<Node> set = Sets.newTreeSet();
-		set.add(node1);
-		set.add(node2);
-		System.out.println(set);
 	}
 }
