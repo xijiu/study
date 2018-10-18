@@ -20,10 +20,18 @@ import java.util.stream.Collectors;
  * @since 2018/10/16 下午4:50
  */
 public class PrintRedBlackTree {
+
 	/** 每个节点输入的宽度 */
 	private static int NODE_WIDTH = 5;
+
 	/** 二叉树行距 */
 	private static int LINE_SPACING = 5;
+
+	public static <T extends Comparable> void print(Tree<T> tree) {
+		if (tree != null && tree.getRoot() != null) {
+			print(tree.getRoot());
+		}
+	}
 
 	public static <T extends Comparable> void print(Node<T> node) {
 		Node<T> root = RBTreeHandler.findRoot(node);
@@ -85,7 +93,9 @@ public class PrintRedBlackTree {
 		for (int i = 1; i < totalColSize + 1; i++) {
 			if (map.containsKey(i)) {
 				PrintNode printNode = map.get(i);
-				sb.append(fillWidthContent(printNode.node.getData().toString()));
+				String prefix = printNode.node.getNodeType() == Node.NodeType.BLACK ? "b(" : "r(";
+				String nodeTotalContent =  prefix + printNode.node.getData().toString() + ")";
+				sb.append(fillWidthContent(nodeTotalContent));
 			} else {
 				sb.append(emptyContent());
 			}
@@ -135,13 +145,6 @@ public class PrintRedBlackTree {
 			sb.append("\n");
 		}
 	}
-
-//	public static void main(String[] args) {
-//		StringBuilder sb = new StringBuilder();
-//		List<Pair<Integer, Integer>> linePairList = Lists.newArrayList(new Pair<>(5, 3));
-//		paintLines(sb, linePairList, 10);
-//		System.out.println(sb.toString());
-//	}
 
 	private static String emptyContent() {
 		StringBuilder empty = new StringBuilder();

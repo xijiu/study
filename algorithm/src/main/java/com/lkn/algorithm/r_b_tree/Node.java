@@ -1,10 +1,8 @@
 package com.lkn.algorithm.r_b_tree;
 
 import com.google.common.base.Objects;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
 /**
  * 树中的节点
@@ -12,7 +10,7 @@ import lombok.ToString;
  * @author likangning
  * @since 2018/7/11 上午8:11
  */
-public class Node<T extends Comparable> {
+public class Node<T extends Comparable> implements Comparable<Node<T>> {
 
 	/**
 	 * 节点中存放的内容
@@ -101,11 +99,42 @@ public class Node<T extends Comparable> {
 	}
 
 	/**
+	 * 获取叔叔节点的类型
+	 * @return	叔叔节点类型
+	 */
+	public Node<T> getUncle() {
+		Node<T> uncle;
+		Node<T> parent = getParent();
+		Node<T> grandfather = parent.getParent();
+		if (parent.inParentPosition() == Position.LEFT) {
+			uncle = grandfather.getRightChild();
+		} else {
+			uncle = grandfather.getLeftChild();
+		}
+		return uncle;
+	}
+
+	/**
+	 * 获取叔叔节点的类型
+	 * @return	叔叔节点类型
+	 */
+	public NodeType getUncleNodeType() {
+		Node<T> uncle = getUncle();
+		// 如果叔叔节点为null，那么叔叔节点对应的颜色为黑色
+		return uncle == null ? NodeType.BLACK : uncle.getNodeType();
+	}
+
+	@Override
+	public int compareTo(Node<T> o) {
+		return data.compareTo(o.getData());
+	}
+
+	/**
 	 * 节点类型
 	 */
 	public enum NodeType {
 		RED,
-		BLACK;
+		BLACK
 	}
 
 	/**
@@ -114,5 +143,13 @@ public class Node<T extends Comparable> {
 	public enum Position {
 		LEFT,
 		RIGHT
+	}
+
+	@Override
+	public String toString() {
+		return "Node{" +
+				"data=" + data +
+				", nodeType=" + nodeType +
+				'}';
 	}
 }

@@ -143,8 +143,12 @@ public class RBTreeHandler {
 			template.traverse(findLevel(node), node);
 			Node leftChild = node.getLeftChild();
 			Node rightChild = node.getRightChild();
-			queue.add(leftChild);
-			queue.add(rightChild);
+			if (leftChild != null) {
+				queue.add(leftChild);
+			}
+			if (rightChild != null) {
+				queue.add(rightChild);
+			}
 			doBfs(queue, template);
 		}
 	}
