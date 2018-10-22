@@ -1,5 +1,7 @@
 package com.lkn.algorithm.r_b_tree;
 
+import com.google.common.base.Objects;
+import com.lkn.algorithm.util.Parasite;
 import lombok.Getter;
 
 /**
@@ -18,6 +20,32 @@ public class Tree<T extends Comparable> {
 	 */
 	public synchronized void add(Node<T> node) {
 		RBTreeAdd.add(root, node);
+		rootRest(node);
+	}
+
+	/**
+	 * 删除节点
+	 * @param t	删除节点的内容
+	 */
+	public synchronized void delete(T t) {
+		Parasite<Node<T>> parasite = new Parasite<>();
+		RBTreeHandler.bfs(root, (level, currentNode) -> {
+			if (Objects.equal(t, currentNode.getData())) {
+				parasite.set(currentNode);
+			}
+		});
+		Node<T> node = parasite.get();
+		if (node != null) {
+			RBTreeDelete.delete(node);
+			if (root.getData() == null) {
+				root = null;
+			} else {
+				rootRest(node);
+			}
+		}
+	}
+
+	private void rootRest(Node<T> node) {
 		root = RBTreeHandler.findRoot(node);
 	}
 }

@@ -1,4 +1,4 @@
-package com.lkn;
+package com.lkn.algorithm;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;

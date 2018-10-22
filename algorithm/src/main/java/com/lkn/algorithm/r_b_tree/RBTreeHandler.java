@@ -17,6 +17,9 @@ public class RBTreeHandler {
 	 * @param targetNode	目标节点
 	 */
 	public static <T extends Comparable> void leftRotate(Node<T> targetNode) {
+		if (targetNode == null) {
+			return;
+		}
 		Node<T> rightChild = targetNode.getRightChild();
 		// 如果目标节点的右孩子节点为null，将无法发生左旋
 		if (rightChild == null) {
@@ -49,6 +52,9 @@ public class RBTreeHandler {
 	 * @param targetNode	目标节点
 	 */
 	public static <T extends Comparable> void rightRotate(Node<T> targetNode) {
+		if (targetNode == null) {
+			return;
+		}
 		Node<T> leftChild = targetNode.getLeftChild();
 		// 如果目标节点的右孩子节点为null，将无法发生左旋
 		if (leftChild == null) {
@@ -126,23 +132,23 @@ public class RBTreeHandler {
 
 	/**
 	 * 广度优先遍历
-	 * @param node 根节点
+	 * @param root 根节点
 	 * @param template 遍历模板
 	 * @param <T>	泛型
 	 */
-	public static <T extends Comparable> void bfs(Node<T> node, Template template) {
-		Node<T> root = findRoot(node);
-		Queue<Node> queue = new LinkedList<>();
+	public static <T extends Comparable> void bfs(Node<T> root, Template<T> template) {
+		root = findRoot(root);
+		Queue<Node<T>> queue = new LinkedList<>();
 		queue.add(root);
 		doBfs(queue, template);
 	}
 
-	private static void doBfs(Queue<Node> queue, Template template) {
-		Node node = queue.poll();
+	private static <T extends Comparable> void doBfs(Queue<Node<T>> queue, Template<T> template) {
+		Node<T> node = queue.poll();
 		if (node != null) {
 			template.traverse(findLevel(node), node);
-			Node leftChild = node.getLeftChild();
-			Node rightChild = node.getRightChild();
+			Node<T> leftChild = node.getLeftChild();
+			Node<T> rightChild = node.getRightChild();
 			if (leftChild != null) {
 				queue.add(leftChild);
 			}
@@ -163,13 +169,13 @@ public class RBTreeHandler {
 	}
 
 	@FunctionalInterface
-	public interface Template {
+	public interface Template<T extends Comparable> {
 		/**
 		 * 节点的遍历
 		 *
 		 * @param level	节点的层级
 		 * @param currentNode	当前遍历节点
 		 */
-		void traverse(int level, Node currentNode);
+		void traverse(int level, Node<T> currentNode);
 	}
 }

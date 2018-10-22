@@ -115,6 +115,23 @@ public class Node<T extends Comparable> implements Comparable<Node<T>> {
 	}
 
 	/**
+	 * 获取兄弟节点
+	 * @return	兄弟节点
+	 */
+	public Node<T> getBrother() {
+		Node<T> parent = getParent();
+		if (parent != null) {
+			if (inParentPosition() == Position.LEFT) {
+				return parent.getRightChild();
+			} else {
+				return parent.getLeftChild();
+			}
+		} else {
+			return null;
+		}
+	}
+
+	/**
 	 * 获取叔叔节点的类型
 	 * @return	叔叔节点类型
 	 */

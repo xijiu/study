@@ -1,6 +1,7 @@
 package com.lkn.algorithm.util;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * 寄生虫
@@ -9,9 +10,14 @@ import lombok.Data;
  * @since 2018/6/27 下午8:47
  */
 @Data
+@NoArgsConstructor
 public class Parasite<T> {
 
 	private T t;
+
+	public Parasite(T t) {
+		set(t);
+	}
 
 	public T get() {
 		return t;

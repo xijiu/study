@@ -3,6 +3,8 @@ package com.lkn.algorithm.r_b_tree;
 /**
  * 红黑树的添加操作
  *
+ * 具体思路参见： https://blog.csdn.net/lj6020382/article/details/82195141
+ *
  * @author likangning
  * @since 2018/7/11 上午8:20
  */
