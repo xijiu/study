@@ -1,5 +1,8 @@
 package com.lkn.algorithm.index_file;
 
+import com.lkn.algorithm.b_tree.bean.Element;
+import com.lkn.algorithm.b_tree.bean.Node;
+import com.lkn.algorithm.util.PubTools;
 import org.junit.Test;
 
 import java.io.*;
@@ -62,19 +65,12 @@ public class FileTest {
 		}
 		Long content = 1L;
 		OutputStream outputStream = new FileOutputStream(file, true);
-		outputStream.write(long2byte(content));
+		outputStream.write(PubTools.long2bytes(content));
 		outputStream.flush();
 		outputStream.close();
 	}
 
-	private static byte[] long2byte(long res) {
-		byte[] buffer = new byte[8];
-		for (int i = 0; i < 8; i++) {
-			int offset = 64 - (i + 1) * 8;
-			buffer[i] = (byte) ((res >> offset) & 0xff);
-		}
-		return buffer;
-	}
+
 
 	/**
 	 * 写文件测试
@@ -86,14 +82,28 @@ public class FileTest {
 		byte[] arr = new byte[8];
 		randomAccessFile.seek(2 * 8);
 		randomAccessFile.read(arr);
-		System.out.println("读取文件内容：" + byteArray2Long(arr));
+		System.out.println("读取文件内容：" + PubTools.bytes2Long(arr));
 	}
 
-	private static long byteArray2Long(byte[] b) {
-		long values = 0;
-		for (int i = 0; i < 8; i++) {
-			values <<= 8; values|= (b[i] & 0xff);
+
+
+
+	@Test
+	public void writeIndexFile() {
+		Node node = new Node(1);
+		for (int i = 1; i <= 100; i++) {
+			node.addElement(new Element((long)i));
 		}
-		return values;
+		IndexFile.write(node);
 	}
+
+
+	@Test
+	public void readIndexFile() {
+		Node node = IndexFile.read(1, -1);
+		System.out.println("硬盘编号： " + node.getHardDiskId());
+		System.out.println("节点元素： " + node.getElements());
+	}
+
+
 }

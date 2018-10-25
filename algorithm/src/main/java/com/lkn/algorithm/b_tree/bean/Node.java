@@ -1,7 +1,9 @@
 package com.lkn.algorithm.b_tree.bean;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.sun.source.tree.ParenthesizedTree;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,13 +20,20 @@ import java.util.Set;
  */
 public class Node {
 	// 阶数
-	public static final int ORDER_NUM = 5;
+	public static final int ORDER_NUM = 511;
 	public static final int MIDDLE_INDEX = (ORDER_NUM % 2 == 0 ? ORDER_NUM - 2 : ORDER_NUM - 1) / 2;
 
 	/**
 	 * 当前节点拥有的元素
  	 */
 	private Set<Element> elements = Sets.newTreeSet();
+
+	/**
+	 * 硬盘存储的唯一id
+	 */
+	@Setter
+	@Getter
+	private Integer hardDiskId;
 
 	// 当前节点的父节点
 	@Setter
@@ -44,6 +53,17 @@ public class Node {
 	 */
 	@Getter
 	private Node beforeLeafNode;
+
+	public Node(Integer hardDiskId) {
+		this(hardDiskId, null);
+	}
+
+	public Node(Integer hardDiskId, Integer parentHardDiskId) {
+		this.hardDiskId = hardDiskId;
+		if (parentHardDiskId != null && !Objects.equal(parentHardDiskId, -1)) {
+			this.parent = new Node(parentHardDiskId);
+		}
+	}
 
 	public Node(Node parent) {
 		this.parent = parent;
