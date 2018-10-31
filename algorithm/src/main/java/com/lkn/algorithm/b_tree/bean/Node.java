@@ -3,7 +3,10 @@ package com.lkn.algorithm.b_tree.bean;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.sun.source.tree.ParenthesizedTree;
+import com.lkn.algorithm.index_file.DefaultIndexFileOperation;
+import com.lkn.algorithm.index_file.IndexFileOperation;
+import com.lkn.algorithm.index_file.IndexHeaderDesc;
+import com.lkn.algorithm.index_file.ThreadHelper;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -20,8 +23,11 @@ import java.util.Set;
  */
 public class Node {
 	// 阶数
-	public static final int ORDER_NUM = 511;
+	public static final int ORDER_NUM = 254;
+//	public static final int ORDER_NUM = 5;
 	public static final int MIDDLE_INDEX = (ORDER_NUM % 2 == 0 ? ORDER_NUM - 2 : ORDER_NUM - 1) / 2;
+
+	private static IndexFileOperation indexFileOperation = DefaultIndexFileOperation.getSingleInstance();
 
 	/**
 	 * 当前节点拥有的元素
@@ -54,7 +60,7 @@ public class Node {
 	@Getter
 	private Node beforeLeafNode;
 
-	public Node(Integer hardDiskId) {
+	public Node(int hardDiskId) {
 		this(hardDiskId, null);
 	}
 
@@ -65,8 +71,37 @@ public class Node {
 		}
 	}
 
+	/**
+	 * 新分配节点
+	 *
+	 * @param parent	父节点
+	 */
 	public Node(Node parent) {
+		this(parent, -1);
+	}
+
+	public Node(Node parent, int hardDiskId) {
 		this.parent = parent;
+		if (parent == null) {
+			// 如果新节点为根节点，那么默认将其位置放在1上
+			this.hardDiskId = 1;
+		} else {
+			// 如果未指定新节点开辟空间的位置，那么需要从硬盘中重新开辟新位置，并维护索引文件的描述信息
+			if (hardDiskId == -1) {
+				synchronized (Node.class) {
+					// 1、从索引文件描述信息中，获取最大的node编号并+1
+					// 2、向硬盘中写入索引描述信息
+					IndexHeaderDesc desc = indexFileOperation.readIndexHeaderDesc();
+					int currNumber = desc.getMaxNodeNumber() + 1;
+					setHardDiskId(currNumber);
+					desc.setMaxNodeNumber(currNumber);
+					indexFileOperation.writeIndexHeaderDesc(desc);
+				}
+			} else {
+				this.hardDiskId = hardDiskId;
+			}
+		}
+		ThreadHelper.putNode(this);
 	}
 
 	/**

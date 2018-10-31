@@ -2,11 +2,12 @@ package com.lkn.algorithm.b_tree_plus;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Sets;
-import com.lkn.algorithm.b_tree.Tree;
 import com.lkn.algorithm.b_tree.TreeAdd;
 import com.lkn.algorithm.b_tree.bean.Element;
 import com.lkn.algorithm.b_tree.bean.Node;
-import com.lkn.algorithm.util.Parasite;
+import com.lkn.algorithm.index_file.DefaultIndexFileOperation;
+import com.lkn.algorithm.index_file.IndexFileOperation;
+import com.lkn.algorithm.index_file.ThreadHelper;
 import lombok.Builder;
 
 import java.util.Set;
@@ -18,6 +19,8 @@ import java.util.Set;
  * @since 2018/6/27 上午9:56
  */
 public class BPlusTreeAdd {
+
+	private static IndexFileOperation indexFileOperation = DefaultIndexFileOperation.getSingleInstance();
 
 	/**
 	 * 添加一个新元素
@@ -40,6 +43,7 @@ public class BPlusTreeAdd {
 	 */
 	private static void addNewElement(Node leafNode, Element newElement) {
 		leafNode.addElement(newElement);
+		ThreadHelper.putNode(leafNode);
 		adjust(leafNode);
 	}
 
@@ -73,7 +77,7 @@ public class BPlusTreeAdd {
 		Element middleElement = splitNode.middleElement;
 		if (parent != null) {
 			Element[] elementArr = getFatherElementArr(node);
-			Node leftNode = new Node(parent);
+			Node leftNode = new Node(parent, node.getHardDiskId());
 			leftNode.addElements(splitNode.leftElements);
 
 			Node rightNode = new Node(parent);
@@ -83,6 +87,7 @@ public class BPlusTreeAdd {
 
 			leftNode.setNextLeafNode(rightNode);
 			parent.addElement(middleElement);
+			ThreadHelper.putNode(parent);
 			adjustFatherElement(elementArr, leftNode, rightNode, middleElement, node);
 			adjust(parent);
 		} else {

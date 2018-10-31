@@ -18,13 +18,8 @@ public class AppTest {
 
 	@Test
 	public void test2() {
-		List<Character> list = Lists.newArrayList();
-		addElement(list, '-', 10);
-		System.out.println(list);
-		addElement(list, '-', 2);
-		System.out.println(list);
-		addElement(list, '-', 2);
-		System.out.println(list);
+		List<String> abc = Lists.newArrayList("a", "b");
+		System.out.println(abc.toArray(new String[0]).length);
 	}
 
 	private void addElement(List<Character> list, Character element, int index) {

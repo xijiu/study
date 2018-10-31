@@ -12,4 +12,6 @@ public class Constant {
 	 * 即每个node占用4K的空间
 	 */
 	public static final long PEER_NODE_SIZE_IN_HARD_DISK = 4096L;
+
+	public static final String INDEX_FILE_PATH = "./test.index";
 }

@@ -14,6 +14,20 @@ import java.io.*;
 public class FileTest {
 	private File file = new File("/Users/likangning/myTest/file/a.txt");
 
+	private IndexFileOperation indexFileOperation = DefaultIndexFileOperation.getSingleInstance();
+
+	@Test
+	public void readNode() {
+		Node node = indexFileOperation.read(6, -1);
+		System.out.println(node);
+	}
+
+	@Test
+	public void readIndexHeaderDesc() {
+		IndexHeaderDesc indexHeaderDesc = indexFileOperation.readIndexHeaderDesc();
+		System.out.println(indexHeaderDesc);
+	}
+
 	@Test
 	public void saveTest() throws Exception {
 		PrintWriter pw = new PrintWriter(new FileWriter(file));
@@ -91,18 +105,18 @@ public class FileTest {
 	@Test
 	public void writeIndexFile() {
 		Node node = new Node(1);
-		for (int i = 1; i <= 100; i++) {
+		for (int i = 100; i <= 150; i++) {
 			node.addElement(new Element((long)i));
 		}
-		IndexFile.write(node);
+//		IndexFile.write(node);
 	}
 
 
 	@Test
 	public void readIndexFile() {
-		Node node = IndexFile.read(1, -1);
-		System.out.println("硬盘编号： " + node.getHardDiskId());
-		System.out.println("节点元素： " + node.getElements());
+//		Node node = IndexFile.read(1, -1);
+//		System.out.println("硬盘编号： " + node.getHardDiskId());
+//		System.out.println("节点元素： " + node.getElements());
 	}
 
 

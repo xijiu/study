@@ -3,6 +3,7 @@ package com.lkn.algorithm.b_tree;
 import com.google.common.base.Objects;
 import com.lkn.algorithm.b_tree.bean.Element;
 import com.lkn.algorithm.b_tree.bean.Node;
+import com.lkn.algorithm.index_file.ThreadHelper;
 import lombok.Builder;
 
 import java.util.Set;
@@ -38,6 +39,7 @@ public class TreeAdd {
 				addNewElementToNode(node, splitBean.middleElement);
 			} else {
 				// 如果为非跟节点，那么继续执行递归方法
+				ThreadHelper.putNode(node.getParent());
 				add(node.getParent(), splitBean.middleElement);
 			}
 		}
