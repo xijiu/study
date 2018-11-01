@@ -5,8 +5,6 @@ import com.google.common.collect.Sets;
 import com.lkn.algorithm.b_tree.TreeAdd;
 import com.lkn.algorithm.b_tree.bean.Element;
 import com.lkn.algorithm.b_tree.bean.Node;
-import com.lkn.algorithm.index_file.DefaultIndexFileOperation;
-import com.lkn.algorithm.index_file.IndexFileOperation;
 import com.lkn.algorithm.index_file.ThreadHelper;
 import lombok.Builder;
 
@@ -19,9 +17,6 @@ import java.util.Set;
  * @since 2018/6/27 上午9:56
  */
 public class BPlusTreeAdd {
-
-	private static IndexFileOperation indexFileOperation = DefaultIndexFileOperation.getSingleInstance();
-
 	/**
 	 * 添加一个新元素
 	 * @param root 根节点

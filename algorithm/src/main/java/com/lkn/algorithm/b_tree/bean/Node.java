@@ -23,9 +23,9 @@ import java.util.Set;
  */
 public class Node {
 	// 阶数
-	public static final int ORDER_NUM = 254;
-//	public static final int ORDER_NUM = 5;
-	public static final int MIDDLE_INDEX = (ORDER_NUM % 2 == 0 ? ORDER_NUM - 2 : ORDER_NUM - 1) / 2;
+//	public static int ORDER_NUM = 254;
+	public static volatile int ORDER_NUM = 5;
+	public static volatile int MIDDLE_INDEX = (ORDER_NUM % 2 == 0 ? ORDER_NUM - 2 : ORDER_NUM - 1) / 2;
 
 	private static IndexFileOperation indexFileOperation = DefaultIndexFileOperation.getSingleInstance();
 
@@ -102,6 +102,11 @@ public class Node {
 			}
 		}
 		ThreadHelper.putNode(this);
+	}
+
+	public static void resetOrderNum(int orderNum) {
+		ORDER_NUM = orderNum;
+		MIDDLE_INDEX = (ORDER_NUM % 2 == 0 ? ORDER_NUM - 2 : ORDER_NUM - 1) / 2;
 	}
 
 	/**
