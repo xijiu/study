@@ -1,4 +1,4 @@
-package com.lkn.algorithm.index_file;
+package com.lkn.algorithm.b_tree_plus.index_file;
 
 import com.google.common.collect.Sets;
 import com.lkn.algorithm.b_tree.bean.Element;
@@ -254,6 +254,7 @@ public class DefaultIndexFileOperation implements IndexFileOperation {
 
 	@Override
 	public void writeIndexHeaderDesc(IndexHeaderDesc indexHeaderDesc) {
+		indexHeaderDesc.setRootIndex(1);
 		byte[] arr = transIndexHeaderToByteArr(indexHeaderDesc);
 		jumpToTargetNode(0);
 		writeByteArrNode(arr);

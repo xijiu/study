@@ -3,8 +3,8 @@ package com.lkn.algorithm.b_tree;
 import com.google.common.collect.Lists;
 import com.lkn.algorithm.b_tree.bean.Element;
 import com.lkn.algorithm.b_tree.bean.Node;
-import com.lkn.algorithm.index_file.DefaultIndexFileOperation;
-import com.lkn.algorithm.index_file.IndexFileOperation;
+import com.lkn.algorithm.b_tree_plus.index_file.DefaultIndexFileOperation;
+import com.lkn.algorithm.b_tree_plus.index_file.IndexFileOperation;
 import org.junit.Test;
 
 import java.util.List;

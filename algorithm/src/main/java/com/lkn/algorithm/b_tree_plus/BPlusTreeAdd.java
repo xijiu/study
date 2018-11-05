@@ -5,7 +5,7 @@ import com.google.common.collect.Sets;
 import com.lkn.algorithm.b_tree.TreeAdd;
 import com.lkn.algorithm.b_tree.bean.Element;
 import com.lkn.algorithm.b_tree.bean.Node;
-import com.lkn.algorithm.index_file.ThreadHelper;
+import com.lkn.algorithm.b_tree_plus.index_file.ThreadHelper;
 import lombok.Builder;
 
 import java.util.Set;

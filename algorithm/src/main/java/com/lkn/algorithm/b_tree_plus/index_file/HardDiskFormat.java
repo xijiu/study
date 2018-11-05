@@ -1,4 +1,4 @@
-package com.lkn.algorithm.index_file;
+package com.lkn.algorithm.b_tree_plus.index_file;
 
 /**
  * 硬盘存储文件的格式

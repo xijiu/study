@@ -1,4 +1,4 @@
-package com.lkn.algorithm.index_file;
+package com.lkn.algorithm.b_tree_plus.index_file;
 
 import lombok.Data;
 

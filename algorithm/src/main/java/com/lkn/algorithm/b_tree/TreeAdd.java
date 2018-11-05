@@ -3,7 +3,7 @@ package com.lkn.algorithm.b_tree;
 import com.google.common.base.Objects;
 import com.lkn.algorithm.b_tree.bean.Element;
 import com.lkn.algorithm.b_tree.bean.Node;
-import com.lkn.algorithm.index_file.ThreadHelper;
+import com.lkn.algorithm.b_tree_plus.index_file.ThreadHelper;
 import lombok.Builder;
 
 import java.util.Set;
