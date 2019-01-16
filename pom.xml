@@ -17,6 +17,7 @@
         <module>algorithm</module>
         <module>machine-learning</module>
         <module>nio</module>
+        <module>classloader</module>
     </modules>
     <packaging>pom</packaging>
 

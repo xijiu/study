@@ -96,25 +96,33 @@ public class ConnHbase {
 	 */
 	@Test
 	public void query() throws IOException {
-		String tableName = "KYLIN_DJVN5GMM28";
+		String tableName = "KYLIN_4XCRK8KQLY";
 		HTable hTable = null;
 		ResultScanner scann = null;
 
 		hTable = (HTable) conn.getTable(TableName.valueOf(tableName));
 		scann = hTable.getScanner(new Scan());
 		for (Result rs : scann) {
-			System.out.println("RowKey为2：" + Bytes.toHex(rs.getRow()));
+			System.out.println("RowKey为：" + Bytes.toHex(rs.getRow()));
+			System.out.println("RowKey为：" + Bytes.toStringBinary(rs.getRow()));
 
 			//按cell进行循环
 			for (Cell cell : rs.rawCells()) {
 				System.out.println("列簇为：" + Bytes.toHex(cell.getRowArray()));
 				System.out.println("列修饰符为：" + Bytes.toString(CellUtil.cloneQualifier(cell)));
 				System.out.println("值为：" + Bytes.toHex(CellUtil.cloneValue(cell)));
+				System.out.println("值为2：" + Bytes.toHex(cell.getValueArray()));
 			}
 			System.out.println("=============================================");
 		}
 		scann.close();
 		hTable.close();
+	}
+
+	public static String getRealRowKey(KeyValue kv) {
+		int rowlength = Bytes.toShort(kv.getBuffer(), kv.getOffset()+KeyValue.ROW_OFFSET);
+		String rowKey = Bytes.toStringBinary(kv.getBuffer(), kv.getOffset()+KeyValue.ROW_OFFSET + Bytes.SIZEOF_SHORT, rowlength);
+		return rowKey;
 	}
 
 
