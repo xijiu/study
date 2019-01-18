@@ -75,3 +75,6 @@ atlassian-ide-plugin.xml
 # NetBeans specific files/directories
 .nbattrs
 *.orig
+
+# polardb数据库文件，不用提交git
+./polardb-game/db
