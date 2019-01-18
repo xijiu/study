@@ -77,4 +77,4 @@ atlassian-ide-plugin.xml
 *.orig
 
 # polardb数据库文件，不用提交git
-*/polardb-game/db
+*/polardb-game/db/*
