@@ -76,7 +76,6 @@ public class StreamHandler extends AbstractDatabaseFile {
 			valOutputStream.flush();
 
 			int currentOffset = getCurrentOffset();
-			System.out.println(currentOffset);
 			byte[] offsetBytes = PubTools.intToBytes(currentOffset);
 
 			keyOutputStream.write(key);
