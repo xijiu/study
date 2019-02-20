@@ -1,11 +1,9 @@
 package com.lkn.polardb.game.read;
 
 import com.lkn.polardb.game.Reader;
-import com.lkn.polardb.game.file.stream.StreamHandler;
+import com.lkn.polardb.game.file.stream.IoHandler;
 import com.lkn.polardb.game.imp.ReaderImp;
 import org.junit.Test;
-
-import java.nio.channels.FileChannel;
 
 /**
  * @author likangning
@@ -13,7 +11,7 @@ import java.nio.channels.FileChannel;
  */
 public class ReaderTest {
 
-	private Reader reader = new ReaderImp(new StreamHandler());
+	private Reader reader = new ReaderImp(new IoHandler());
 
 	@Test
 	public void readTest() {
@@ -22,6 +20,7 @@ public class ReaderTest {
 		System.out.println(get("aaaaaaac"));
 		System.out.println(get("aaaaaaad"));
 		System.out.println(get("aaaaaaae"));
+		System.out.println(get("aaaaaaaf"));
 	}
 
 	private String get(String key) {

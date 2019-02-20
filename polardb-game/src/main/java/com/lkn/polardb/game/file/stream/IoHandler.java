@@ -12,15 +12,14 @@ import java.util.Arrays;
 /**
  * 普通流的方式读取文件
  */
-public class StreamHandler extends AbstractDatabaseFile {
+public class IoHandler extends AbstractDatabaseFile {
 
 	private FileInputStream keyInputStream;
 	private FileOutputStream keyOutputStream;
 	private FileInputStream valInputStream;
 	private FileOutputStream valOutputStream;
-	private int VAL_OFFSET = -1;
 
-	public StreamHandler() {
+	public IoHandler() {
 		try {
 			if (!KEY_FILE.exists()) {
 				KEY_FILE.createNewFile();
@@ -86,26 +85,6 @@ public class StreamHandler extends AbstractDatabaseFile {
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
-		}
-	}
-
-	private void cleanFile() throws IOException {
-		if (VAL_OFFSET == -1) {
-			FileOutputStream keyFileClean = new FileOutputStream(KEY_FILE);
-			FileOutputStream valFileClean = new FileOutputStream(VAL_FILE);
-			keyFileClean.write(new byte[0]);
-			valFileClean.write(new byte[0]);
-		}
-	}
-
-	private int getCurrentOffset() {
-		if (VAL_OFFSET >= 0) {
-			return VAL_OFFSET++;
-		} else {
-			// 单位字节
-			long length = VAL_FILE.length();
-			VAL_OFFSET = (int) length / Constant.VAL_SIZE;
-			return VAL_OFFSET - 1;
 		}
 	}
 }

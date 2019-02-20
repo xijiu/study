@@ -2,10 +2,7 @@ package com.lkn.polardb.game;
 
 import org.junit.Test;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.Arrays;
 
 /**
@@ -29,7 +26,27 @@ public class SimpleTest {
 	}
 	@Test
 	public void test3() throws Exception {
-		byte[] bytes = PubTools.intToBytes(1);
-		System.out.println(PubTools.bytesToInt(bytes, 0));
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < 4096; i++) {
+			sb.append("a");
+		}
+		System.out.println(sb.toString());
+		String s = sb.toString();
+		long begin = System.currentTimeMillis();
+		for (int i = 0; i < 100000; i++) {
+			byte[] bytes = s.getBytes();
+		}
+		long end = System.currentTimeMillis();
+		System.out.println("耗时： " + (end - begin));
 	}
+
+	@Test
+	public void test4() throws Exception {
+		String str = "12345李康宁";
+		Integer max = Integer.MAX_VALUE;
+		System.out.println(str);
+		System.out.println(str.getBytes().length);
+		System.out.println(str.getBytes("unicode").length);
+	}
+
 }

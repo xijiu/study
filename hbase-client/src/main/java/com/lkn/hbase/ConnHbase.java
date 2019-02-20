@@ -112,6 +112,7 @@ public class ConnHbase {
 				System.out.println("列修饰符为：" + Bytes.toString(CellUtil.cloneQualifier(cell)));
 				System.out.println("值为：" + Bytes.toHex(CellUtil.cloneValue(cell)));
 				System.out.println("值为2：" + Bytes.toHex(cell.getValueArray()));
+				System.out.println("*************** value长度为：" + cell.getValueArray().length);
 			}
 			System.out.println("=============================================");
 		}
