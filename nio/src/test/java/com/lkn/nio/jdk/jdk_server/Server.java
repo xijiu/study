@@ -1,4 +1,4 @@
-package com.lkn.nio.jdk_server;
+package com.lkn.nio.jdk.jdk_server;
 
 import org.junit.Test;
 
@@ -64,18 +64,21 @@ public class Server {
 		socketChannel.register(key.selector(), SelectionKey.OP_READ, ByteBuffer.allocateDirect(BUF_SIZE));
 	}
 
-	private void handleRead(SelectionKey key) throws IOException {
+	private void handleRead(SelectionKey key) throws Exception {
 		SocketChannel sc = (SocketChannel) key.channel();
 		ByteBuffer buf = (ByteBuffer) key.attachment();
 		long bytesRead = sc.read(buf);
 		while (bytesRead > 0) {
 			buf.flip();
+			System.out.print(Thread.currentThread().getName() + " : ");
 			while (buf.hasRemaining()) {
 				System.out.print((char) buf.get());
 			}
 			System.out.println();
 			buf.clear();
 			bytesRead = sc.read(buf);
+			System.out.println("查询DB需要消耗3秒时间");
+			Thread.sleep(3000);
 		}
 		if (bytesRead == -1) {
 			sc.close();

@@ -78,3 +78,4 @@ atlassian-ide-plugin.xml
 
 # polardb数据库文件，不用提交git
 /polardb-game/db/*
+/nio/tmpFile/*

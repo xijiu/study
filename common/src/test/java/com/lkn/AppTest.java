@@ -32,4 +32,20 @@ public class AppTest {
 		return collection == null || collection.isEmpty();
 	}
 
+	@Test
+	public void bbb() {
+		String result = tryTest();
+		System.out.println(result);
+	}
+
+	private String tryTest() {
+		try {
+			System.out.println("inner");
+			int a = 1 / 0;
+			return "123";
+		} finally {
+			System.out.println("i am finally");
+		}
+	}
+
 }

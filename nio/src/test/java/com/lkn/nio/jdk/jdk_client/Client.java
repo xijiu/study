@@ -1,4 +1,4 @@
-package com.lkn.nio.jdk_client;
+package com.lkn.nio.jdk.jdk_client;
 
 import org.junit.Test;
 
