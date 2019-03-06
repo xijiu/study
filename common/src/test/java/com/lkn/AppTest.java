@@ -8,6 +8,7 @@ import org.junit.Test;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -46,6 +47,17 @@ public class AppTest {
 		} finally {
 			System.out.println("i am finally");
 		}
+	}
+
+	@Test
+	public void ranTest() {
+		System.out.println((long) (Math.random() * 100));
+	}
+
+	@Test
+	public void test2() {
+		int availProcessors = Runtime.getRuntime().availableProcessors();
+		System.out.println("avail processors count: " + availProcessors);
 	}
 
 }

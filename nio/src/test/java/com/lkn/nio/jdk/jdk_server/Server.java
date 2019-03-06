@@ -65,9 +65,9 @@ public class Server {
 	}
 
 	private void handleRead(SelectionKey key) throws Exception {
-		SocketChannel sc = (SocketChannel) key.channel();
+		SocketChannel socketChannel = (SocketChannel) key.channel();
 		ByteBuffer buf = (ByteBuffer) key.attachment();
-		long bytesRead = sc.read(buf);
+		long bytesRead = socketChannel.read(buf);
 		while (bytesRead > 0) {
 			buf.flip();
 			System.out.print(Thread.currentThread().getName() + " : ");
@@ -76,12 +76,12 @@ public class Server {
 			}
 			System.out.println();
 			buf.clear();
-			bytesRead = sc.read(buf);
+			bytesRead = socketChannel.read(buf);
 			System.out.println("查询DB需要消耗3秒时间");
 			Thread.sleep(3000);
 		}
 		if (bytesRead == -1) {
-			sc.close();
+			socketChannel.close();
 		}
 	}
 
