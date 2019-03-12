@@ -57,15 +57,18 @@ public class BtreeTest {
 
 
 	protected void addElement(int element) {
+		System.out.println("插入：" + element + "\r\n");
 		if (root == null) {
 			root = new Node(null);
 			TreeAdd.add(root, new Element<>(element));
 		} else {
 			Tree.addElement(root, new Element<>(element));
 		}
+		PrintTree.print(root);
 	}
 
 	protected void deleteElement(int element) {
+		System.out.println("删除 " + element + "\r\n");
 		TreeDelete.delete(root, new Element<>(element));
 	}
 

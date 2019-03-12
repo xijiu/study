@@ -68,7 +68,7 @@ public class BPlusTreeTestForHardDisk extends BtreeTest {
 	public void addTest() {
 		Node.resetOrderNum(254);
 		int begin = 1;
-		int end = 100000;
+		int end = 1000000;
 		for (int i = begin; i < end; i++) {
 			addLongElement(i);
 		}
@@ -76,7 +76,7 @@ public class BPlusTreeTestForHardDisk extends BtreeTest {
 
 	@Test
 	public void readTest() {
-		long content = (long) 72394;
+		long content = (long) 782394;
 		Node root = indexFileOperation.readRoot();
 		Node targetNode = findNode(root, content);
 		System.out.println(targetNode);

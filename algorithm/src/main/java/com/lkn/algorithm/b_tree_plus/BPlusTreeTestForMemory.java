@@ -35,7 +35,7 @@ public class BPlusTreeTestForMemory extends BtreeTest {
 	public void addTest() {
 		Node.resetOrderNum(5);
 		int begin = 1;
-		int end = 100;
+		int end = 20;
 		for (int i = begin; i < end; i++) {
 			addElement(i);
 			PrintTree.print(root);

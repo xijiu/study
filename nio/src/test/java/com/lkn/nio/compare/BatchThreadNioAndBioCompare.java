@@ -25,9 +25,9 @@ public class BatchThreadNioAndBioCompare {
 
 	protected static String SERVER_HOST = "127.0.0.1";
 
-	protected static int THREAD_NUM = 1000;
+	protected static int THREAD_NUM = 500;
 
-	protected static int CLIENT_SAY_HELLO_TIMES = 3000;
+	protected static int CLIENT_SAY_HELLO_TIMES = 2000;
 
 	protected static String LOGIN_SUCCESS = "LOGIN_SUCCESS";
 

@@ -80,6 +80,13 @@ public class WriteTest {
 		return valBuilder.toString();
 	}
 
+	@Test
+	public void aaaaa() {
+		for (int i = 0; i < 10; i++) {
+			System.out.println(genericKey(i));
+		}
+	}
+
 	/**
 	 * 生成key
 	 */

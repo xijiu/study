@@ -11,6 +11,9 @@ import java.util.Arrays;
  */
 public class SimpleTest {
 
+	private char[] items = new char[]{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
+
+
 	@Test
 	public void test() throws IOException {
 		File DB_FILE = new File(System.getProperty("user.dir") + "/data.db");
@@ -24,6 +27,7 @@ public class SimpleTest {
 		Integer a = 1;
 		outputStream.write("1234567890".getBytes());
 	}
+
 	@Test
 	public void test3() throws Exception {
 		StringBuilder sb = new StringBuilder();
@@ -47,6 +51,31 @@ public class SimpleTest {
 		System.out.println(str);
 		System.out.println(str.getBytes().length);
 		System.out.println(str.getBytes("unicode").length);
+	}
+
+	@Test
+	public void b() {
+
+		System.out.println(Math.ceil(2.5));
+		System.out.println(Math.ceil(2.5) - 1);
+//		int num = 1000000;
+//		StringBuilder sb = new StringBuilder();
+//		calc(num, sb);
+//		System.out.println(sb.toString());
+	}
+
+	private void calc(int num, StringBuilder sb) {
+		if (num < items.length) {
+			sb.append(items[num]);
+		} else {
+			int originLevel = num / items.length - 1;
+			int level = originLevel;
+			while (level >= items.length) {
+				level = level / items.length - 1;
+			}
+			sb.append(items[level]);
+			calc(num - 26 * num / items.length, sb);
+		}
 	}
 
 }

@@ -19,6 +19,7 @@
         <module>nio</module>
         <module>classloader</module>
         <module>polardb-game</module>
+        <module>mysql</module>
     </modules>
     <packaging>pom</packaging>
 
@@ -123,6 +124,12 @@
                 <groupId>io.netty</groupId>
                 <artifactId>netty-all</artifactId>
                 <version>4.1.6.Final</version>
+            </dependency>
+
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>5.1.34</version>
             </dependency>
 
         </dependencies>
