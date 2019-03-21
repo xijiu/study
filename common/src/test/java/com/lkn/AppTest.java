@@ -60,4 +60,9 @@ public class AppTest {
 		System.out.println("avail processors count: " + availProcessors);
 	}
 
+	@Test
+	public void test3() {
+		System.out.println(AppTest.class.getClassLoader());
+	}
+
 }

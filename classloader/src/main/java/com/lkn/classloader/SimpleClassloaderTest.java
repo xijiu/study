@@ -2,6 +2,7 @@ package com.lkn.classloader;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import com.lkn.classloader.classloader.MyClassLoader;
 import org.junit.Assert;
 import org.junit.Test;
 
