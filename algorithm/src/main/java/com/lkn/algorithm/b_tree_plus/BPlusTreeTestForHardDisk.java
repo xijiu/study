@@ -76,7 +76,7 @@ public class BPlusTreeTestForHardDisk extends BtreeTest {
 
 	@Test
 	public void readTest() {
-		long content = (long) 782394;
+		long content = (long) 592394;
 		Node root = indexFileOperation.readRoot();
 		Node targetNode = findNode(root, content);
 		System.out.println(targetNode);

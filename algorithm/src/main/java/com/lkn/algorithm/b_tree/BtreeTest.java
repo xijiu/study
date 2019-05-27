@@ -74,7 +74,7 @@ public class BtreeTest {
 
 	@Test
 	public void createManyTest() {
-		for (int i = 10; i < 70; i++) {
+		for (int i = 1; i < 70; i++) {
 			addElement(i);
 		}
 		PrintTree.print(root);
