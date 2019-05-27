@@ -16,6 +16,8 @@ public class ClassLoaderLK extends ClassLoader {
 
 
 	public static void main(String[] args) {
+
+
 		String ext = "java.ext.dirs";
 		System.out.println("java.ext.dirs :\n" + System.getProperty(ext));
 		String cp = "java.class.path";
