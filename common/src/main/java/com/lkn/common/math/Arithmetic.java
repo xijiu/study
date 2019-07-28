@@ -22,10 +22,8 @@ public class Arithmetic {
 
 	@Test
 	public void test() {
-		double a = 2*(2*5.3+2.8)-4/(8.2*(5-3));
-		System.out.println(a);
-		BigDecimal bigDecimal = doCalc(expression);
-		System.out.println("result is : " + bigDecimal);
+		String s = "http://wolong-file-test.oss-cn-beijing.aliyuncs.com/report/20190701/2809036fac3245bb91ed69c407c70a14.zip?Expires=1562055886&OSSAccessKeyId=LTAI31CFZjugIhi1&Signature=tLt2YgcH8CEQI%2FH%2FHUsAnY%2BKtHo%3D";
+		System.out.println(s.length());
 	}
 
 	@Test

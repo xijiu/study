@@ -20,6 +20,7 @@
         <module>classloader</module>
         <module>polardb-game</module>
         <module>mysql</module>
+        <module>multithreading</module>
     </modules>
     <packaging>pom</packaging>
 
