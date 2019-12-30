@@ -229,13 +229,47 @@ public class AppTest {
 	}
 
 	@Test
-	public void a() {
-		ByteBuffer buffer = ByteBuffer.allocate(34);
-		buffer.putLong(10);
-		byte[] array = buffer.array();
-		ByteBuffer wrap = ByteBuffer.wrap(array);
-		long result = wrap.getLong();
-		System.out.println(result);
+	public void a2() {
+		List<Integer> list = new ArrayList<>();
+		list.add(10);
+		list.add(5);
+		list.add(4);
+		list.add(2);
+		list.add(8);
+		list.add(1);
+		list.add(11);
+		list.add(15);
+		list.add(13);
+		list.sort(Integer::compareTo);
+		System.out.println(list);
+//		System.out.println(binarySearch(list, 0, list.size() - 1, 5));
+//		System.out.println(binarySearch(list, 0, list.size() - 1, 2));
+//		System.out.println(binarySearch(list, 0, list.size() - 1, 1));
+//		System.out.println(binarySearch(list, 0, list.size() - 1, 15));
+//		System.out.println(binarySearch(list, 0, list.size() - 1, 3));
+		Integer a = 5;
+		Integer b = 3;
+		System.out.println(a.compareTo(b));
+	}
+
+	private int binarySearch(List<Integer> list, int beginIndex, int endIndex, int target) {
+		if (beginIndex == endIndex) {
+			return beginIndex;
+		} else if (endIndex - beginIndex == 1) {
+			 if (list.get(endIndex) == target && list.get(beginIndex) != target) {
+			 		return endIndex;
+			 }
+			 return beginIndex;
+		}
+		int middle = (endIndex + beginIndex) / 2;
+		Integer middleVal = list.get(middle);
+		if (target < middleVal) {
+			return binarySearch(list, beginIndex, middle - 1, target);
+		} else if (target > middleVal) {
+			return binarySearch(list, middle + 1, endIndex, target);
+		} else {
+			return middle;
+		}
 	}
 
 

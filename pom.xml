@@ -21,6 +21,7 @@
         <module>polardb-game</module>
         <module>mysql</module>
         <module>multithreading</module>
+        <module>leetcode</module>
     </modules>
     <packaging>pom</packaging>
 
@@ -131,6 +132,13 @@
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
                 <version>5.1.34</version>
+            </dependency>
+
+            <!-- jni 依赖 -->
+            <dependency>
+                <groupId>net.smacke</groupId>
+                <artifactId>jaydio</artifactId>
+                <version>0.1</version>
             </dependency>
 
         </dependencies>

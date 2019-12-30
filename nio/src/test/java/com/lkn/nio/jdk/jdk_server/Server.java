@@ -23,7 +23,34 @@ public class Server {
 
 	@Test
 	public void selector() throws Exception {
-		System.out.println(Integer.MAX_VALUE);
+		Selector selector = Selector.open();
+		ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
+		serverSocketChannel.socket().bind(new InetSocketAddress(PORT));
+		serverSocketChannel.configureBlocking(false);
+		serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
+		while (true) {
+			if (selector.select(TIMEOUT) == 0) {
+				System.out.println("==");
+				continue;
+			}
+			Iterator<SelectionKey> iter = selector.selectedKeys().iterator();
+			while (iter.hasNext()) {
+				SelectionKey selectionKey = iter.next();
+				if (selectionKey.isAcceptable()) {
+					handleAccept(selectionKey);
+				}
+				if (selectionKey.isReadable()) {
+					handleRead(selectionKey);
+				}
+				if (selectionKey.isWritable() && selectionKey.isValid()) {
+					handleWrite(selectionKey);
+				}
+				if (selectionKey.isConnectable()) {
+					System.out.println("isConnectable = true");
+				}
+				iter.remove();
+			}
+		}
 //		selector.close();
 //		ssc.close();
 	}
