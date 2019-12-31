@@ -2,8 +2,6 @@ package com.lkn.leetcode.algorithm;
 
 import org.junit.Test;
 
-import java.util.Stack;
-
 /**
  * 正则表达式
  *
@@ -25,25 +23,21 @@ public class LeetCode_10 {
 	}
 
 	class Solution {
-		boolean isMatch = false;
-		private Stack<Integer> stack = new Stack<>();
+		private boolean isMatch = false;
+		private char[] baseChars;
+		private char[] exprChars;
 		public boolean isMatch(String s, String p) {
 			isMatch = false;
-			char[] baseChars = s.toCharArray();
-			char[] matchChars = p.toCharArray();
-			stack.clear();
-			stack.push(0);
-			stack.push(0);
-			traverseMatch(baseChars, matchChars, stack);
+			baseChars = s.toCharArray();
+			exprChars = p.toCharArray();
+			traverseMatch(0, 0);
 			return isMatch;
 		}
 
-		private void traverseMatch(char[] baseChars, char[] exprChars, Stack<Integer> stack) {
-			if (stack.isEmpty() || isMatch) {
+		private void traverseMatch(int baseIndex, int exprIndex) {
+			if (isMatch) {
 				return;
 			}
-			Integer baseIndex = stack.pop();
-			Integer exprIndex = stack.pop();
 			if (baseIndex >= baseChars.length || exprIndex >= exprChars.length) {
 				if (baseIndex == baseChars.length && exprIndex == exprChars.length) {
 					isMatch = true;
@@ -72,9 +66,7 @@ public class LeetCode_10 {
 				char nextExprChar = exprChars[exprIndex + 1];
 				if (nextExprChar == '*') {
 					// 认为*的匹配次数为0
-					stack.push(exprIndex + 2);
-					stack.push(baseIndex);
-					traverseMatch(baseChars, exprChars, stack);
+					traverseMatch(baseIndex, exprIndex + 2);
 					boolean isMatchAll = exprChar == '.';
 
 					// 认为*的匹配次数为多个
@@ -93,9 +85,7 @@ public class LeetCode_10 {
 							}
 						}
 						if (isEqual) {
-							stack.push(exprIndex + 2);
-							stack.push(baseIndex + matchNum);
-							traverseMatch(baseChars, exprChars, stack);
+							traverseMatch( baseIndex + matchNum, exprIndex + 2);
 						} else {
 							break;
 						}
@@ -107,9 +97,7 @@ public class LeetCode_10 {
 							isMatch = true;
 							return;
 						} else {
-							stack.push(exprIndex + 1);
-							stack.push(baseIndex + 1);
-							traverseMatch(baseChars, exprChars, stack);
+							traverseMatch( baseIndex + 1, exprIndex + 1);
 						}
 					} else {
 						// 已经不能继续匹配
