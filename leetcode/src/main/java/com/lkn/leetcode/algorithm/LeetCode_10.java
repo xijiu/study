@@ -20,12 +20,17 @@ public class LeetCode_10 {
 //		Object result = new Solution().isMatch("a", "ab*");
 //		Object result = new Solution().isMatch("", "c*c*");
 		System.out.println(result);
+		System.out.println((int) '*');
+		System.out.println((int) '.');
 	}
 
 	class Solution {
+
 		private boolean isMatch = false;
 		private char[] baseChars;
 		private char[] exprChars;
+		private int XING = 42;
+		private int DOT = 46;
 		public boolean isMatch(String s, String p) {
 			isMatch = false;
 			baseChars = s.toCharArray();
@@ -44,7 +49,7 @@ public class LeetCode_10 {
 				} else if (baseIndex == baseChars.length && (exprChars.length - exprIndex) % 2 == 0) {
 					boolean flag = true;
 					for (int i = exprIndex + 1; i < exprChars.length; i = i + 2) {
-						if (exprChars[i] != '*') {
+						if (exprChars[i] != XING) {
 							flag = false;
 						}
 					}
@@ -58,20 +63,19 @@ public class LeetCode_10 {
 			char exprChar = exprChars[exprIndex];
 			// 最后一个字符
 			if (exprIndex == exprChars.length - 1) {
-				if ((baseChar == exprChar || exprChar == '.') && baseIndex == baseChars.length - 1) {
+				if ((baseChar == exprChar || exprChar == DOT) && baseIndex == baseChars.length - 1) {
 					isMatch = true;
-					return;
 				}
 			} else {
 				char nextExprChar = exprChars[exprIndex + 1];
-				if (nextExprChar == '*') {
+				if (nextExprChar == XING) {
 					// 认为*的匹配次数为0
 					traverseMatch(baseIndex, exprIndex + 2);
-					boolean isMatchAll = exprChar == '.';
+					boolean isMatchAll = exprChar == DOT;
 
 					// 认为*的匹配次数为多个
 					int matchNum = 1;
-					while (true) {
+					while (!isMatch) {
 						if (baseIndex + matchNum > baseChars.length) {
 							break;
 						}
@@ -92,16 +96,12 @@ public class LeetCode_10 {
 						matchNum++;
 					}
 				} else {
-					if (baseChar == exprChar || exprChar == '.') {
+					if (baseChar == exprChar || exprChar == DOT) {
 						if (baseIndex == baseChars.length - 1 && exprIndex == exprChars.length - 1) {
 							isMatch = true;
-							return;
 						} else {
 							traverseMatch( baseIndex + 1, exprIndex + 1);
 						}
-					} else {
-						// 已经不能继续匹配
-						return;
 					}
 				}
 			}
