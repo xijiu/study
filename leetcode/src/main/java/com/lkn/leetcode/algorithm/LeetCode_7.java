@@ -3,11 +3,11 @@ package com.lkn.leetcode.algorithm;
 import org.junit.Test;
 
 /**
- * 最长回文子串
+ * 字符串反转
  * @author likangning
  * @since 2019/12/25 上午11:12
  */
-public class Leetcode_7 {
+public class LeetCode_7 {
 
 	@Test
 	public void test() {

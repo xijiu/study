@@ -7,7 +7,7 @@ import org.junit.Test;
  * @author likangning
  * @since 2019/12/25 上午11:12
  */
-public class Leetcode_6 {
+public class LeetCode_6 {
 
 	@Test
 	public void test() {
