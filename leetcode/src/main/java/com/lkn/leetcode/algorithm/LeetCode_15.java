@@ -18,8 +18,46 @@ public class LeetCode_15 {
 		 * [[-4,-2,6],[-2,-2,4],[-4,-2,6],[-2,-2,4],[-4,-2,6],[-2,0,2],[-4,0,4],[-4,1,3],[-4,2,2]]
 		 * [[-4,-2,6],[-4,0,4],[-4,1,3],[-4,2,2],[-2,-2,4],[-2,0,2]]
 		 */
-		Object result = new LeetCode_15.Solution().threeSum(new int[]{1,2,-2,-1});
+		Object result = new LeetCode_15.Solution().threeSum(new int[]{0,0,0});
 		System.out.println(result);
+	}
+
+	class Solution {
+		public List<List<Integer>> threeSum(int[] nums) {
+			Arrays.sort(nums);
+			List<List<Integer>> result = new ArrayList<>();
+			if (nums.length >= 3) {
+				for (int i = 0; i < nums.length; i++) {
+					if (nums[i] > 0) {
+						break;
+					}
+					if (i > 0 && nums[i] == nums[i - 1]) {
+						continue;
+					}
+					int leftIndex = i + 1;
+					int rightIndex = nums.length - 1;
+					int lastLeftIndex = -1;
+					int lastRightIndex = -1;
+					while (leftIndex < rightIndex) {
+						int sum = nums[leftIndex] + nums[rightIndex] + nums[i];
+						if (sum == 0) {
+							if (lastLeftIndex == -1 || nums[lastLeftIndex] != nums[leftIndex] || nums[lastRightIndex] != nums[rightIndex]) {
+								result.add(Arrays.asList(nums[i], nums[leftIndex], nums[rightIndex]));
+							}
+							lastLeftIndex = leftIndex;
+							lastRightIndex = rightIndex;
+							leftIndex++;
+							rightIndex--;
+						} else if (sum < 0) {
+							leftIndex++;
+						} else {
+							rightIndex--;
+						}
+					}
+				}
+			}
+			return result;
+		}
 	}
 
 //	class Solution {
@@ -27,12 +65,9 @@ public class LeetCode_15 {
 //			Arrays.sort(nums);
 //			List<List<Integer>> result = new ArrayList<>();
 //			if (nums.length >= 3) {
-//				Map<Integer, Integer> map = new HashMap<>(nums.length);
-//				for (int i = 0; i < nums.length; i++) {
-//					map.put(nums[i], i);
-//				}
 //				for (int i = 1; i < nums.length - 1; i++) {
 //					int leftIndex = 0;
+//					int rightIndex = nums.length - 1;
 //					if (i >= 2 && nums[i] == nums[i - 1]) {
 //						if (nums[i] < 0) {
 //							if (nums[i - 1] == nums[i - 2]) {
@@ -46,32 +81,33 @@ public class LeetCode_15 {
 //					}
 //					while (true) {
 //						if (nums[i] < 0) {
-//							if (leftIndex == i) {
+//							if (leftIndex == i || nums[rightIndex] < 0) {
 //								break;
 //							}
 //						} else {
-//							if (nums[leftIndex] >= 0) {
+//							if (nums[leftIndex] >= 0 || rightIndex == i) {
 //								break;
 //							}
 //						}
 //
-//						int remainVal = -(nums[leftIndex] + nums[i]);
-//						Integer rightIndex = map.get(remainVal);
-//						if (rightIndex != null && rightIndex > i) {
+//						int sum = nums[leftIndex] + nums[i] + nums[rightIndex];
+//						if (sum == 0) {
 //							if (result.size() > 0) {
 //								List<Integer> last = result.get(result.size() - 1);
-//								if (last.get(0) == nums[leftIndex] && last.get(1) == nums[i] && last.get(2) == remainVal) {
+//								if (last.get(0) == nums[leftIndex] && last.get(1) == nums[i] && last.get(2) == nums[rightIndex]) {
 //									leftIndex++;
+//									rightIndex--;
 //									continue;
 //								}
 //							}
-//							List<Integer> single = new ArrayList<>(3);
-//							single.add(nums[leftIndex]);
-//							single.add(nums[i]);
-//							single.add(remainVal);
-//							result.add(single);
+//							result.add(Arrays.asList(nums[leftIndex], nums[i], nums[rightIndex]));
+//							leftIndex++;
+//							rightIndex--;
+//						} else if (sum < 0) {
+//							leftIndex++;
+//						} else {
+//							rightIndex--;
 //						}
-//						leftIndex++;
 //					}
 //
 //					if (nums[i] == 0) {
@@ -87,11 +123,7 @@ public class LeetCode_15 {
 //							tmp++;
 //						}
 //						if (zeroNum >= 3) {
-//							List<Integer> single = new ArrayList<>(3);
-//							single.add(0);
-//							single.add(0);
-//							single.add(0);
-//							result.add(single);
+//							result.add(Arrays.asList(0, 0, 0));
 //							i = tmp - 1;
 //						}
 //					}
@@ -100,87 +132,6 @@ public class LeetCode_15 {
 //			return result;
 //		}
 //	}
-
-	class Solution {
-		public List<List<Integer>> threeSum(int[] nums) {
-			Arrays.sort(nums);
-			List<List<Integer>> result = new ArrayList<>();
-			if (nums.length >= 3) {
-				for (int i = 1; i < nums.length - 1; i++) {
-					int leftIndex = 0;
-					int rightIndex = nums.length - 1;
-					if (i >= 2 && nums[i] == nums[i - 1]) {
-						if (nums[i] < 0) {
-							if (nums[i - 1] == nums[i - 2]) {
-								continue;
-							} else {
-								leftIndex = i - 1;
-							}
-						} else {
-							continue;
-						}
-					}
-					while (true) {
-						if (nums[i] < 0) {
-							if (leftIndex == i || nums[rightIndex] < 0) {
-								break;
-							}
-						} else {
-							if (nums[leftIndex] >= 0 || rightIndex == i) {
-								break;
-							}
-						}
-
-						int sum = nums[leftIndex] + nums[i] + nums[rightIndex];
-						if (sum == 0) {
-							if (result.size() > 0) {
-								List<Integer> last = result.get(result.size() - 1);
-								if (last.get(0) == nums[leftIndex] && last.get(1) == nums[i] && last.get(2) == nums[rightIndex]) {
-									leftIndex++;
-									rightIndex--;
-									continue;
-								}
-							}
-							List<Integer> single = new ArrayList<>(3);
-							single.add(nums[leftIndex]);
-							single.add(nums[i]);
-							single.add(nums[rightIndex]);
-							result.add(single);
-							leftIndex++;
-							rightIndex--;
-						} else if (sum < 0) {
-							leftIndex++;
-						} else {
-							rightIndex--;
-						}
-					}
-
-					if (nums[i] == 0) {
-						int zeroNum = 1;
-						int tmp = i - 1;
-						while (tmp >= 0 && nums[tmp] == 0) {
-							zeroNum++;
-							tmp--;
-						}
-						tmp = i + 1;
-						while (tmp < nums.length && nums[tmp] == 0) {
-							zeroNum++;
-							tmp++;
-						}
-						if (zeroNum >= 3) {
-							List<Integer> single = new ArrayList<>(3);
-							single.add(0);
-							single.add(0);
-							single.add(0);
-							result.add(single);
-							i = tmp - 1;
-						}
-					}
-				}
-			}
-			return result;
-		}
-	}
 
 //	class Solution {
 //		public List<List<Integer>> threeSum(int[] nums) {

@@ -41,7 +41,7 @@ import java.util.UUID;
  */
 public class CompareMysqlPK {
 
-	private static Connection connection;
+	static Connection connection;
 
 	private static String db = "test";
 
