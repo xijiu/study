@@ -1,7 +1,7 @@
 package com.lkn.leetcode.algorithm;
 
 /**
- * 最终击败100%用户，结果比较满意哈
+ * 耗时2ms，最终击败100%用户，结果比较满意哈
  *
  * @author likangning
  * @since 2020/4/14 下午2:22
