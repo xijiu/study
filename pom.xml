@@ -22,6 +22,7 @@
         <module>mysql</module>
         <module>multithreading</module>
         <module>leetcode</module>
+        <module>test</module>
     </modules>
     <packaging>pom</packaging>
 
