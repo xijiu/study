@@ -1,12 +1,16 @@
 package com.lkn.nio.netty.server;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.DelimiterBasedFrameDecoder;
+import io.netty.handler.codec.string.StringDecoder;
 import org.junit.Test;
 
 import java.net.InetSocketAddress;
@@ -30,7 +34,11 @@ public class EchoServer {
 					.childHandler(new ChannelInitializer<SocketChannel>() {  //在Channel的ChannelPipeline中加入EchoServerHandler
 						@Override
 						protected void initChannel(SocketChannel ch) throws Exception {
-							ch.pipeline().addLast(serverHandler);//EchoServerHandler是@Sharable的，所以我们可以一直用同一个实例
+							ByteBuf buf = Unpooled.copiedBuffer("^".getBytes());
+							ch.pipeline()
+									.addLast(new DelimiterBasedFrameDecoder(409600, buf))
+									.addLast(new StringDecoder())
+									.addLast(serverHandler);
 						}
 					});
 			ChannelFuture channelFuture = serverBootstrap.bind().sync();//异步的绑定服务器，sync()一直等到绑定完成

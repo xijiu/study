@@ -135,13 +135,16 @@ public class FileChecksumTest {
 
 	@Test
 	public void ccc2() throws InterruptedException {
-		List<String> dataList = new ArrayList<>();
-		dataList.add("a");
-		dataList.add("b");
-		dataList.add("c");
-		String collect = dataList.stream().collect(Collectors.joining("\n"));
-		System.out.println(collect);
-		System.out.println(123);
+		ConcurrentSkipListMap<Integer, String> map = new ConcurrentSkipListMap<>();
+		map.put(9, "a");
+		map.put(4, "b");
+		map.put(5, "c");
+		map.put(1, "d");
+		map.put(3, "e");
+		Semaphore semaphore = new Semaphore(10);
+		System.out.println(semaphore.availablePermits());
+		semaphore.acquire();
+		System.out.println(semaphore.availablePermits());
 	}
 
 
