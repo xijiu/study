@@ -74,10 +74,10 @@ public class ClientProcessData {
                         if (data[i] == 10) {
                             long traceId;
                             if (lastByteArr != null) {
-                                lineByteArr = new byte[lastByteArr.length + i - beginIndex];
-                                System.arraycopy(lastByteArr, 0, lineByteArr, 0, lastByteArr.length);
-                                System.arraycopy(data, beginIndex, lineByteArr, lastByteArr.length, i - beginIndex);
-                                traceId = longFrom8Bytes(lineByteArr, 0);
+//                                lineByteArr = new byte[lastByteArr.length + i - beginIndex];
+//                                System.arraycopy(lastByteArr, 0, lineByteArr, 0, lastByteArr.length);
+//                                System.arraycopy(data, beginIndex, lineByteArr, lastByteArr.length, i - beginIndex);
+//                                traceId = longFrom8Bytes(lineByteArr, 0);
                                 lastByteArr = null;
                             } else {
                                 traceId = longFrom8Bytes(data, beginIndex);
@@ -113,11 +113,11 @@ public class ClientProcessData {
                         break;
                     }
                 }
-                if (beginIndex <= byteNum) {
-                    int length = byteNum - beginIndex;
-                    lastByteArr = new byte[length];
-                    System.arraycopy(data, beginIndex, lastByteArr, 0, length);
-                }
+//                if (beginIndex <= byteNum) {
+//                    int length = byteNum - beginIndex;
+//                    lastByteArr = new byte[length];
+//                    System.arraycopy(data, beginIndex, lastByteArr, 0, length);
+//                }
             }
 
             FINISH = true;
@@ -129,7 +129,7 @@ public class ClientProcessData {
     }
 
     private boolean isBadTraceData(byte[] lineByteArr, int endIndex) {
-        if (lineByteArr.length < 20) {
+        if (lineByteArr.length < 20 || endIndex < 10) {
             return false;
         }
         int i = endIndex;

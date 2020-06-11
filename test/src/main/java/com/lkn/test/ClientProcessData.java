@@ -76,7 +76,7 @@ public class ClientProcessData {
                             int length = i - beginIndex;
 //                            lineByteArr = new byte[length];
 //                            System.arraycopy(data, beginIndex, lineByteArr, 0, length);
-                            traceId = longFrom8Bytes(data, 0);
+                            traceId = longFrom8Bytes(data, beginPos);
                             byte[] spanList = traceMap.get(traceId);
                             if (spanList == null) {
                                 spanList = new byte[18000];
