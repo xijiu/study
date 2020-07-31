@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author likangning
@@ -19,7 +20,7 @@ public class BatchBean {
 
 	public int cacheByteArrIndex = 0;
 
-	private Map<Long, Integer> traceIdAndDataMap = new HashMap<>();
+	private Map<Long, Integer> traceIdAndDataMap = new ConcurrentHashMap<>();
 
 	public BatchBean() {
 		for (int i = 0; i < 2000; i++) {

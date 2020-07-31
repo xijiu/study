@@ -93,12 +93,29 @@ public class ThreadTest2 {
 				for (int i = begin; i < length; i++) {
 					if (arr[i] == 10) {
 						count++;
-						begin = i + 1;
+						begin = i + 100;
 						break;
 					}
 				}
 				if (begin + 400 >= length) {
 					break;
+				}
+			}
+		}
+		System.out.println(count);
+	}
+
+	@Test
+	public void bbb4() throws Exception {
+		InputStream inputStream = new FileInputStream("/Users/likangning/Desktop/云原生比赛/trace1.data");
+		int count = 0;
+		byte[] arr = new byte[5 * 1024 * 1024];
+		int length = 0;
+		while ((length = inputStream.read(arr)) != -1) {
+			for (int i = 0; i < length; i++) {
+				if (arr[i] == 10) {
+					count++;
+					i += 100;
 				}
 			}
 		}
@@ -184,4 +201,10 @@ public class ThreadTest2 {
 		return value;
 	}
 
+
+	@Test
+	public void abcd() {
+		long traceId = 4343243L;
+		System.out.println((int) (traceId % 2000));
+	}
 }

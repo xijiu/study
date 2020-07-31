@@ -54,7 +54,7 @@ public class ClientProcessData {
     public void doRun() {
         try {
             InputStream input = new FileInputStream("/Users/likangning/Desktop/云原生比赛/trace1.data");
-            byte[] data = new byte[1024 * 1024 * 2];
+            byte[] data = new byte[1024 * 1024 * 5];
             int byteNum;
             byte[] lineByteArr;
             int count = 0;
