@@ -5,6 +5,7 @@ import org.junit.Test;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 多线程计数器
@@ -26,13 +27,34 @@ public class CountDownLatchTest {
                 @Override
                 public void run() {
                     Tools.randomSleep();
+//                    Tools.sleep(2000);
                     countDownLatch.countDown();
                     System.out.println(index + "准备就绪");
                 }
             });
         }
 
-        countDownLatch.await();
+        countDownLatch.await(10, TimeUnit.SECONDS);
+
         System.out.println("\r\n===> 火箭发射!!!");
+
+
+        ExecutorService executorService2 = Executors.newCachedThreadPool();
+        for (int i = 0; i < 8; i++) {
+            final int index = i;
+            executorService2.execute(new Runnable() {
+                @Override
+                public void run() {
+                    Tools.randomSleep();
+//                    Tools.sleep(2000);
+                    countDownLatch.countDown();
+                    System.out.println(index + "准备就绪");
+                }
+            });
+        }
+
+        countDownLatch.await(10, TimeUnit.SECONDS);
+
+        System.out.println("\r\n===> 2222 火箭发射!!!");
     }
 }
