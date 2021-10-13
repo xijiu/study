@@ -21,12 +21,6 @@ public class Arithmetic {
 	private Stack<String> stack = new Stack<>();
 
 	@Test
-	public void test() {
-		String s = "http://wolong-file-test.oss-cn-beijing.aliyuncs.com/report/20190701/2809036fac3245bb91ed69c407c70a14.zip?Expires=1562055886&OSSAccessKeyId=LTAI31CFZjugIhi1&Signature=tLt2YgcH8CEQI%2FH%2FHUsAnY%2BKtHo%3D";
-		System.out.println(s.length());
-	}
-
-	@Test
 	public void test2() {
 		long begin = System.currentTimeMillis();
 		for (int i = 0; i < 1000000; i++) {
