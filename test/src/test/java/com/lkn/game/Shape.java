@@ -43,6 +43,8 @@ public abstract class Shape {
         }
     }
 
+    protected abstract int getCode();
+
     public void reset() {
         line = 0;
         pos = 0;

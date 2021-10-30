@@ -83,6 +83,10 @@ public class A extends Shape {
         return true;
     }
 
+    @Override
+    protected int getCode() {
+        return code;
+    }
 
 
 }
