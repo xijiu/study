@@ -4,7 +4,9 @@ package com.lkn.game;
 public class Game {
     public static final int steps = 12;
 
-    public static byte[][] board = new byte[5][steps];
+    public static final int boardWidth = 5;
+
+    public static byte[][] board = new byte[boardWidth][steps];
 
     private static Shape[] shapes = {
             new A(), new B(), new C(), new D(),
@@ -33,7 +35,11 @@ public class Game {
         while (true) {
             updateBoard(shapes[index].getCode(), 0);
             if (shapes[index].tryPut()) {
-                if (index >= 8) {
+                if (!checkBoardValid()) {
+                    continue;
+                }
+//                System.out.println("succeed " + index);
+                if (index >= 10) {
                     System.out.println(index);
                     printBoard();
                 }
@@ -56,6 +62,32 @@ public class Game {
                 index--;
             }
         }
+    }
+
+    /**
+     * 检查棋盘是否有效，用于剪枝操作
+     */
+    private boolean checkBoardValid() {
+        for (int i = 0; i < boardWidth; i++) {
+            for (int j = 0; j < steps; j++) {
+                if (board[i][j] == 0) {
+                    if (j + 1 < steps && board[i][j + 1] == 0) {
+                        continue;
+                    }
+                    if (j - 1 >= 0 && board[i][j - 1] == 0) {
+                        continue;
+                    }
+                    if (i + 1 < boardWidth && board[i + 1][j] == 0) {
+                        continue;
+                    }
+                    if (i - 1 >= 0 && board[i - 1][j] == 0) {
+                        continue;
+                    }
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
 
