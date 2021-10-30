@@ -1,6 +1,8 @@
 package com.lkn.game;
 
 
+import java.util.*;
+
 public class Game {
     public static final int steps = 12;
 
@@ -39,17 +41,12 @@ public class Game {
                     continue;
                 }
 //                System.out.println("succeed " + index);
-                if (index >= 10) {
+                if (index >= 11) {
                     System.out.println(index);
                     printBoard();
                 }
                 if (index == steps - 1) {
-                    if (1 == 1) {
-                        printBoard();
-                        System.exit(1);
-                    }
                     succeedNum++;
-                    return;
                 } else {
                     index++;
                 }
@@ -71,23 +68,65 @@ public class Game {
         for (int i = 0; i < boardWidth; i++) {
             for (int j = 0; j < steps; j++) {
                 if (board[i][j] == 0) {
-                    if (j + 1 < steps && board[i][j + 1] == 0) {
-                        continue;
+                    int activeNum = queryActiveNum(i, j);
+                    if (activeNum < 5) {
+                        return false;
                     }
-                    if (j - 1 >= 0 && board[i][j - 1] == 0) {
-                        continue;
-                    }
-                    if (i + 1 < boardWidth && board[i + 1][j] == 0) {
-                        continue;
-                    }
-                    if (i - 1 >= 0 && board[i - 1][j] == 0) {
-                        continue;
-                    }
-                    return false;
                 }
             }
         }
         return true;
+    }
+
+    private Queue<Integer> queue = new LinkedList<>();
+    private Set<Integer> set = new HashSet<>();
+
+    private int queryActiveNum(int i, int j) {
+        queue.clear();
+        set.clear();
+        int num = 1;
+        queue.add(i * 100 + j);
+        while (queue.size() > 0) {
+            Integer val = queue.poll();
+            i = val / 100;
+            j = val % 100;
+            if (j + 1 < steps && board[i][j + 1] == 0) {
+                int tmp = i * 100 + j + 1;
+                if (!set.contains(tmp)) {
+                    set.add(tmp);
+                    queue.add(tmp);
+                    num++;
+                }
+            }
+            if (j - 1 >= 0 && board[i][j - 1] == 0) {
+                int tmp = i * 100 + j - 1;
+                if (!set.contains(tmp)) {
+                    set.add(tmp);
+                    queue.add(tmp);
+                    num++;
+                }
+            }
+            if (i + 1 < boardWidth && board[i + 1][j] == 0) {
+                int tmp = (i + 1) * 100 + j;
+                if (!set.contains(tmp)) {
+                    set.add(tmp);
+                    queue.add(tmp);
+                    num++;
+                }
+            }
+            if (i - 1 >= 0 && board[i - 1][j] == 0) {
+                int tmp = (i - 1) * 100 + j;
+                if (!set.contains(tmp)) {
+                    set.add(tmp);
+                    queue.add(tmp);
+                    num++;
+                }
+            }
+            if (num >= 5) {
+                return num;
+            }
+        }
+        return num;
     }
 
 
