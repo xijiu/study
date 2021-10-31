@@ -4,16 +4,19 @@ public class I extends Shape {
 
     private static byte code = 9;
 
-    private static int forms = 1;
 
-    //  a
-    // aaa
-    //  a
-    private final byte[][] shape1 = {
-            {1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
-            {1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
-            {1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
+    private final byte[][] origin1 = new byte[][] {
+            {0, 1, 0},
+            {1, 1, 1},
+            {0, 1, 0},
     };
+
+    private final byte[][] shape1 = genericArr(origin1);
+    private final int[] posArr1 = genericPosArr(origin1);
+
+    public I(byte[][] board) {
+        super(board);
+    }
 
     @Override
     protected boolean tryPut() {
@@ -21,10 +24,7 @@ public class I extends Shape {
         while (true) {
             switch (currForm) {
                 case 1:
-                    //  a
-                    // aaa
-                    //  a
-                    result = put(code, shape1[0].length, shape1.length, shape1, 1, 0, 1, -1, 1, 1, 2, 0);
+                    result = put(code, shape1[0].length, shape1.length, shape1, posArr1);
                     break;
                 default:
                     return false;
