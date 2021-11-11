@@ -3,6 +3,7 @@ package com.lkn.game;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class Game {
     public static final int steps = 12;
@@ -10,6 +11,8 @@ public class Game {
     public static final int boardWidth = 5;
 
     public static final long beginTime = System.currentTimeMillis();
+
+    private static AtomicLong tryPutTotalTimes = new AtomicLong();
 
     public byte[][] board = new byte[boardWidth][steps];
 
@@ -29,7 +32,13 @@ public class Game {
         for (int i = 0; i < concurrent; i++) {
             Game game = new Game();
             game.a.currForm = i + 1;
-            threads[i] = new Thread(() -> game.start(0));
+            threads[i] = new Thread(() -> {
+                long startTime = System.currentTimeMillis();
+                game.start(0);
+                long cost = System.currentTimeMillis() - startTime;
+                tryPutTotalTimes.addAndGet(game.tryPutTimes);
+                System.out.println("thread cost time is " + cost + ", tryPutTotalTimes is " + tryPutTotalTimes.get());
+            });
             threads[i].start();
         }
 
@@ -41,9 +50,12 @@ public class Game {
         System.out.println("time cost " + cost);
     }
 
+    int tryPutTimes = 0;
+
     private void start(int index) {
         while (true) {
             updateBoard(shapes[index].getCode(), 0);
+            tryPutTimes++;
             if (shapes[index].tryPut()) {
                 if (!checkBoardValid()) {
                     continue;
@@ -79,11 +91,13 @@ public class Game {
                 if (board[i][j] == 0) {
                     int activeNum = queryActiveNum(i, j);
                     if (activeNum % 5 != 0) {
+                        updateBoard(-2, 0);
                         return false;
                     }
                 }
             }
         }
+        updateBoard(-2, 0);
         return true;
     }
 
@@ -135,9 +149,12 @@ public class Game {
                     num++;
                 }
             }
-//            if (num >= 5) {
-//                return num;
-//            }
+        }
+        for (int k = 0; k < tailIndex; k++) {
+            int val = queue[k];
+            i = val / 12;
+            j = val % 12;
+            board[i][j] = -2;
         }
         return num;
     }
