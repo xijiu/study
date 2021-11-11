@@ -78,7 +78,7 @@ public class Game {
             for (int j = 0; j < steps; j++) {
                 if (board[i][j] == 0) {
                     int activeNum = queryActiveNum(i, j);
-                    if (activeNum < 5) {
+                    if (activeNum % 5 != 0) {
                         return false;
                     }
                 }
@@ -87,53 +87,57 @@ public class Game {
         return true;
     }
 
-    private Queue<Integer> queue = new LinkedList<>();
-    private Set<Integer> set = new HashSet<>();
+    private int[] queue = new int[60];
+    private int headIndex = 0;
+    private int tailIndex = 0;
+//    private Set<Integer> set = new HashSet<>();
+    private boolean[] set = new boolean[60];
 
     private int queryActiveNum(int i, int j) {
-        queue.clear();
-        set.clear();
-        int num = 1;
-        queue.add(i * 100 + j);
-        while (queue.size() > 0) {
-            Integer val = queue.poll();
-            i = val / 100;
-            j = val % 100;
+        headIndex = 0;
+        tailIndex = 0;
+        Arrays.fill(set, false);
+        int num = 0;
+        queue[tailIndex++] = i * 12 + j;
+        while (tailIndex - headIndex > 0) {
+            int val = queue[headIndex++];
+            i = val / 12;
+            j = val % 12;
             if (j + 1 < steps && board[i][j + 1] == 0) {
-                int tmp = i * 100 + j + 1;
-                if (!set.contains(tmp)) {
-                    set.add(tmp);
-                    queue.add(tmp);
+                int tmp = i * 12 + j + 1;
+                if (!set[tmp]) {
+                    set[tmp] = true;
+                    queue[tailIndex++] = tmp;
                     num++;
                 }
             }
             if (j - 1 >= 0 && board[i][j - 1] == 0) {
-                int tmp = i * 100 + j - 1;
-                if (!set.contains(tmp)) {
-                    set.add(tmp);
-                    queue.add(tmp);
+                int tmp = i * 12 + j - 1;
+                if (!set[tmp]) {
+                    set[tmp] = true;
+                    queue[tailIndex++] = tmp;
                     num++;
                 }
             }
             if (i + 1 < boardWidth && board[i + 1][j] == 0) {
-                int tmp = (i + 1) * 100 + j;
-                if (!set.contains(tmp)) {
-                    set.add(tmp);
-                    queue.add(tmp);
+                int tmp = (i + 1) * 12 + j;
+                if (!set[tmp]) {
+                    set[tmp] = true;
+                    queue[tailIndex++] = tmp;
                     num++;
                 }
             }
             if (i - 1 >= 0 && board[i - 1][j] == 0) {
-                int tmp = (i - 1) * 100 + j;
-                if (!set.contains(tmp)) {
-                    set.add(tmp);
-                    queue.add(tmp);
+                int tmp = (i - 1) * 12 + j;
+                if (!set[tmp]) {
+                    set[tmp] = true;
+                    queue[tailIndex++] = tmp;
                     num++;
                 }
             }
-            if (num >= 5) {
-                return num;
-            }
+//            if (num >= 5) {
+//                return num;
+//            }
         }
         return num;
     }
