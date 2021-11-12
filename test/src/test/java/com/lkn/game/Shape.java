@@ -2,13 +2,13 @@ package com.lkn.game;
 
 public abstract class Shape {
 
-    protected byte[][] board;
+    protected int[][] board;
 
     protected int line = 0;
     protected int pos = 0;
     protected int currForm = 1;
 
-    public Shape(byte[][] board) {
+    public Shape(int[][] board) {
         this.board = board;
     }
 

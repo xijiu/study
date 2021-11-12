@@ -14,7 +14,7 @@ public class Game {
 
     private static AtomicLong tryPutTotalTimes = new AtomicLong();
 
-    public byte[][] board = new byte[boardWidth][steps];
+    public int[][] board = new int[boardWidth][steps];
 
     private A a = new A(board);
 
@@ -90,7 +90,7 @@ public class Game {
             for (int j = 0; j < steps; j++) {
                 if (board[i][j] == 0) {
                     int activeNum = queryActiveNum(i, j);
-                    if (activeNum % 5 != 0) {
+                    if (activeNum % 5 != 0 || activeNum == 0) {
                         updateBoard(-2, 0);
                         return false;
                     }
@@ -159,6 +159,93 @@ public class Game {
         return num;
     }
 
+//    private int queryActiveNum(int i, int j) {
+//        int num = 0;
+//        int col1 = j;
+//        int col2 = j;
+//        for (int k = j; k < 12; k++) {
+//            if (board[i][k] == 0) {
+//                board[i][k] = -2;
+//                col2 = k;
+//                num++;
+//            } else {
+//                break;
+//            }
+//        }
+//        if (++i >= boardWidth) {
+//            return num;
+//        }
+//        boolean goOn = false;
+//        for (int k = col1; k <= col2; k++) {
+//            if (board[i][k] == 0) {
+//                board[i][k] = -2;
+//                num++;
+//                goOn = true;
+//            }
+//        }
+//        for (int k = col1; k >= 0; k--) {
+//            if (board[i][k] == 0) {
+//                board[i][k] = -2;
+//                col1 = k;
+//                num++;
+//            } else {
+//                break;
+//            }
+//        }
+//
+//
+//
+//        headIndex = 0;
+//        tailIndex = 0;
+//        Arrays.fill(set, false);
+//        int num = 0;
+//        queue[tailIndex++] = i * 12 + j;
+//        while (tailIndex - headIndex > 0) {
+//            int val = queue[headIndex++];
+//            i = val / 12;
+//            j = val % 12;
+//            if (j + 1 < steps && board[i][j + 1] == 0) {
+//                int tmp = i * 12 + j + 1;
+//                if (!set[tmp]) {
+//                    set[tmp] = true;
+//                    queue[tailIndex++] = tmp;
+//                    num++;
+//                }
+//            }
+//            if (j - 1 >= 0 && board[i][j - 1] == 0) {
+//                int tmp = i * 12 + j - 1;
+//                if (!set[tmp]) {
+//                    set[tmp] = true;
+//                    queue[tailIndex++] = tmp;
+//                    num++;
+//                }
+//            }
+//            if (i + 1 < boardWidth && board[i + 1][j] == 0) {
+//                int tmp = (i + 1) * 12 + j;
+//                if (!set[tmp]) {
+//                    set[tmp] = true;
+//                    queue[tailIndex++] = tmp;
+//                    num++;
+//                }
+//            }
+//            if (i - 1 >= 0 && board[i - 1][j] == 0) {
+//                int tmp = (i - 1) * 12 + j;
+//                if (!set[tmp]) {
+//                    set[tmp] = true;
+//                    queue[tailIndex++] = tmp;
+//                    num++;
+//                }
+//            }
+//        }
+//        for (int k = 0; k < tailIndex; k++) {
+//            int val = queue[k];
+//            i = val / 12;
+//            j = val % 12;
+//            board[i][j] = -2;
+//        }
+//        return num;
+//    }
+
 
     private void updateBoard(int origin, int update) {
         for (int i = 0; i < 5; i++) {
@@ -181,7 +268,7 @@ public class Game {
         System.out.println();
     }
 
-    private static char codeToChar(byte b) {
+    private static char codeToChar(int b) {
         switch (b) {
             case 1:
                 return 'a';

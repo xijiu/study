@@ -20,7 +20,7 @@ public class G extends Shape {
 //    private final byte[][] shape2 = genericArr(origin2);
 //    private final int[] posArr2 = genericPosArr(origin2);
 
-    public G(byte[][] board) {
+    public G(int[][] board) {
         super(board);
     }
 

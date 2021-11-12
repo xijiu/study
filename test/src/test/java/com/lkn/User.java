@@ -3,6 +3,7 @@ package com.lkn;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -114,5 +115,16 @@ public class User {
 		} else {
 			return 0;
 		}
+	}
+
+	@Test
+	public void test3() {
+		LinkedList<String> list = new LinkedList<>();
+		list.add("1");
+		list.add("2");
+		list.add("3");
+
+		list.add(1, "4");
+		System.out.println(list);
 	}
 }
