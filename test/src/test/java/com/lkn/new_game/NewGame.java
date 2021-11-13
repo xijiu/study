@@ -2,17 +2,11 @@ package com.lkn.new_game;
 
 
 import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 public class NewGame {
     public static final int steps = 12;
 
     public static final int boardWidth = 5;
-
-    public static final long beginTime = System.currentTimeMillis();
-
-    private static AtomicLong tryPutTotalTimes = new AtomicLong();
 
     public byte[][] board = new byte[boardWidth][steps];
 
@@ -30,8 +24,6 @@ public class NewGame {
     private final A a_ = new A(board, b_);
 
     private final Shape[] shapes = {a_, b_, c_, d_, e_, f_, g_, h_, i_, j_, k_, l_};
-
-    private static AtomicInteger succeedNum = new AtomicInteger();
 
     private static int findTimes = 0;
 
@@ -63,10 +55,8 @@ public class NewGame {
             findEmptyPos();
             boolean result = shape.tryPut(emptyPos.i, emptyPos.j);
             if (result) {
-//                printBoard();
                 if (stackIndex == 11) {
                     // 找到一个答案，把答案print出来
-                    System.out.println("find all");
                     findTimes++;
                     printBoard();
 
@@ -74,19 +64,15 @@ public class NewGame {
                     shape.currForm = 1;
                     updateBoard(stack[stackIndex], -1);
                 } else {
-                    int index = findNextShape(0, stack, stackIndex);
+                    int index = findNextShape(-1, stack, stackIndex);
                     if (index != 100) {
                         stack[++stackIndex] = index;
-                        continue;
-                    } else {
-                        continue;
                     }
                 }
             } else {
                 int index = findNextShape(shape.getCode(), stack, stackIndex);
                 if (index != 100) {
                     stack[stackIndex] = index;
-                    continue;
                 } else {
                     stackIndex--;
                     if (stackIndex < 0) {
@@ -95,7 +81,6 @@ public class NewGame {
                         return;
                     }
                     updateBoard(stack[stackIndex], -1);
-                    continue;
                 }
 
             }
@@ -132,203 +117,6 @@ public class NewGame {
             }
         }
     }
-
-
-    int tryPutTimes = 0;
-
-//    private void start(int index) {
-//        while (true) {
-//            updateBoard(shapes[index].getCode(), 0);
-//            tryPutTimes++;
-//            if (shapes[index].tryPut()) {
-//                if (!checkBoardValid()) {
-//                    continue;
-//                }
-////                System.out.println("succeed " + index);
-//                if (index >= 11) {
-//                    System.out.println(index);
-//                    printBoard();
-//                }
-//                if (index == steps - 1) {
-//                    int num = succeedNum.incrementAndGet();
-//                    System.out.println("find num is " + num + ", time cost " + (System.currentTimeMillis() - beginTime));
-//                } else {
-//                    index++;
-//                }
-//            } else {
-////                System.out.println("fail " + index);
-//                if (index == 0) {
-//                    return;
-//                }
-//                shapes[index].reset();
-//                index--;
-//            }
-//        }
-//    }
-
-    /**
-     * 检查棋盘是否有效，用于剪枝操作
-     */
-    private boolean checkBoardValid() {
-        for (int i = 0; i < boardWidth; i++) {
-            for (int j = 0; j < steps; j++) {
-                if (board[i][j] == 0) {
-                    int activeNum = queryActiveNum(i, j);
-                    if (activeNum % 5 != 0 || activeNum == 0) {
-                        updateBoard(-2, 0);
-                        return false;
-                    }
-                }
-            }
-        }
-        updateBoard(-2, 0);
-        return true;
-    }
-
-    private int[] queue = new int[60];
-    private int headIndex = 0;
-    private int tailIndex = 0;
-//    private Set<Integer> set = new HashSet<>();
-    private boolean[] set = new boolean[60];
-
-    private int queryActiveNum(int i, int j) {
-        headIndex = 0;
-        tailIndex = 0;
-        Arrays.fill(set, false);
-        int num = 0;
-        queue[tailIndex++] = i * 12 + j;
-        while (tailIndex - headIndex > 0) {
-            int val = queue[headIndex++];
-            i = val / 12;
-            j = val % 12;
-            if (j + 1 < steps && board[i][j + 1] == 0) {
-                int tmp = i * 12 + j + 1;
-                if (!set[tmp]) {
-                    set[tmp] = true;
-                    queue[tailIndex++] = tmp;
-                    num++;
-                }
-            }
-            if (j - 1 >= 0 && board[i][j - 1] == 0) {
-                int tmp = i * 12 + j - 1;
-                if (!set[tmp]) {
-                    set[tmp] = true;
-                    queue[tailIndex++] = tmp;
-                    num++;
-                }
-            }
-            if (i + 1 < boardWidth && board[i + 1][j] == 0) {
-                int tmp = (i + 1) * 12 + j;
-                if (!set[tmp]) {
-                    set[tmp] = true;
-                    queue[tailIndex++] = tmp;
-                    num++;
-                }
-            }
-            if (i - 1 >= 0 && board[i - 1][j] == 0) {
-                int tmp = (i - 1) * 12 + j;
-                if (!set[tmp]) {
-                    set[tmp] = true;
-                    queue[tailIndex++] = tmp;
-                    num++;
-                }
-            }
-        }
-        for (int k = 0; k < tailIndex; k++) {
-            int val = queue[k];
-            i = val / 12;
-            j = val % 12;
-            board[i][j] = -2;
-        }
-        return num;
-    }
-
-//    private int queryActiveNum(int i, int j) {
-//        int num = 0;
-//        int col1 = j;
-//        int col2 = j;
-//        for (int k = j; k < 12; k++) {
-//            if (board[i][k] == 0) {
-//                board[i][k] = -2;
-//                col2 = k;
-//                num++;
-//            } else {
-//                break;
-//            }
-//        }
-//        if (++i >= boardWidth) {
-//            return num;
-//        }
-//        boolean goOn = false;
-//        for (int k = col1; k <= col2; k++) {
-//            if (board[i][k] == 0) {
-//                board[i][k] = -2;
-//                num++;
-//                goOn = true;
-//            }
-//        }
-//        for (int k = col1; k >= 0; k--) {
-//            if (board[i][k] == 0) {
-//                board[i][k] = -2;
-//                col1 = k;
-//                num++;
-//            } else {
-//                break;
-//            }
-//        }
-//
-//
-//
-//        headIndex = 0;
-//        tailIndex = 0;
-//        Arrays.fill(set, false);
-//        int num = 0;
-//        queue[tailIndex++] = i * 12 + j;
-//        while (tailIndex - headIndex > 0) {
-//            int val = queue[headIndex++];
-//            i = val / 12;
-//            j = val % 12;
-//            if (j + 1 < steps && board[i][j + 1] == 0) {
-//                int tmp = i * 12 + j + 1;
-//                if (!set[tmp]) {
-//                    set[tmp] = true;
-//                    queue[tailIndex++] = tmp;
-//                    num++;
-//                }
-//            }
-//            if (j - 1 >= 0 && board[i][j - 1] == 0) {
-//                int tmp = i * 12 + j - 1;
-//                if (!set[tmp]) {
-//                    set[tmp] = true;
-//                    queue[tailIndex++] = tmp;
-//                    num++;
-//                }
-//            }
-//            if (i + 1 < boardWidth && board[i + 1][j] == 0) {
-//                int tmp = (i + 1) * 12 + j;
-//                if (!set[tmp]) {
-//                    set[tmp] = true;
-//                    queue[tailIndex++] = tmp;
-//                    num++;
-//                }
-//            }
-//            if (i - 1 >= 0 && board[i - 1][j] == 0) {
-//                int tmp = (i - 1) * 12 + j;
-//                if (!set[tmp]) {
-//                    set[tmp] = true;
-//                    queue[tailIndex++] = tmp;
-//                    num++;
-//                }
-//            }
-//        }
-//        for (int k = 0; k < tailIndex; k++) {
-//            int val = queue[k];
-//            i = val / 12;
-//            j = val % 12;
-//            board[i][j] = -2;
-//        }
-//        return num;
-//    }
 
 
     private void updateBoard(int origin, int update) {
