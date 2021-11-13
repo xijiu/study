@@ -71,6 +71,7 @@ public class NewGame {
                     printBoard();
 
                     updateBoard(stack[stackIndex--], -1);
+                    shape.currForm = 1;
                     updateBoard(stack[stackIndex], -1);
                 } else {
                     int index = findNextShape(0, stack, stackIndex);
@@ -95,24 +96,6 @@ public class NewGame {
                     }
                     updateBoard(stack[stackIndex], -1);
                     continue;
-
-
-
-//                    while (true) {
-//                        stackIndex--;
-//                        if (stackIndex < 0) {
-//                            // 结束了
-//                            System.out.println("over3");
-//                            return;
-//                        }
-//                        updateBoard(stack[stackIndex], -1);
-//
-//                        index = findNextShape(shapes[stack[stackIndex]].getCode(), stack, stackIndex);
-//                        if (index != 100) {
-//                            stack[stackIndex] = index;
-//                            break;
-//                        }
-//                    }
                 }
 
             }
