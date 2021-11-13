@@ -1,48 +1,48 @@
-package com.lkn.game;
+package com.lkn.new_game;
 
-public class B extends Shape {
+public class F extends Shape {
 
-    private static byte code = 1;
+    private static byte code = 5;
 
     private final int[][] origin1 = new int[][] {
-            {1, 0},
-            {1, 0},
-            {1, 1},
-            {1, 0},
+            {0, 1, 0},
+            {1, 1, 1},
+            {1, 0, 0},
     };
     private final int[][] origin2 = new int[][] {
-            {0, 0, 1, 0},
-            {1, 1, 1, 1},
+            {0, 1, 0},
+            {1, 1, 0},
+            {0, 1, 1},
     };
     private final int[][] origin3 = new int[][] {
-            {0, 1},
-            {1, 1},
-            {0, 1},
-            {0, 1},
+            {0, 0, 1},
+            {1, 1, 1},
+            {0, 1, 0},
     };
     private final int[][] origin4 = new int[][] {
-            {1, 1, 1, 1},
-            {0, 1, 0, 0},
+            {1, 1, 0},
+            {0, 1, 1},
+            {0, 1, 0},
     };
     private final int[][] origin5 = new int[][] {
-            {0, 1},
-            {0, 1},
-            {1, 1},
-            {0, 1},
+            {0, 1, 0},
+            {1, 1, 1},
+            {0, 0, 1},
     };
     private final int[][] origin6 = new int[][] {
-            {1, 1, 1, 1},
-            {0, 0, 1, 0},
+            {0, 1, 1},
+            {1, 1, 0},
+            {0, 1, 0},
     };
     private final int[][] origin7 = new int[][] {
-            {1, 0},
-            {1, 1},
-            {1, 0},
-            {1, 0},
+            {1, 0, 0},
+            {1, 1, 1},
+            {0, 1, 0},
     };
     private final int[][] origin8 = new int[][] {
-            {0, 1, 0, 0},
-            {1, 1, 1, 1},
+            {0, 1, 0},
+            {0, 1, 1},
+            {1, 1, 0},
     };
 
     private final int[][] shape1 = genericArr(origin1);
@@ -62,41 +62,41 @@ public class B extends Shape {
     private final int[][] shape8 = genericArr(origin8);
     private final int[] posArr8 = genericPosArr(origin8);
 
-    public B(byte[][] board, Shape next) {
+    public F(byte[][] board, Shape next) {
         super(board, next);
     }
 
-
     @Override
-    protected boolean tryPut() {
+    protected boolean tryPut(int i, int j) {
         boolean result;
         while (true) {
             switch (currForm) {
                 case 1:
-                    result = put(code, shape1[0].length, shape1.length, shape1, posArr1);
+                    result = putToPos(code, posArr1, i, j);
                     break;
                 case 2:
-                    result = put(code, shape2[0].length, shape2.length, shape2, posArr2);
+                    result = putToPos(code, posArr2, i, j);
                     break;
                 case 3:
-                    result = put(code, shape3[0].length, shape3.length, shape3, posArr3);
+                    result = putToPos(code, posArr3, i, j);
                     break;
                 case 4:
-                    result = put(code, shape4[0].length, shape4.length, shape4, posArr4);
+                    result = putToPos(code, posArr4, i, j);
                     break;
                 case 5:
-                    result = put(code, shape5[0].length, shape5.length, shape5, posArr5);
+                    result = putToPos(code, posArr5, i, j);
                     break;
                 case 6:
-                    result = put(code, shape6[0].length, shape6.length, shape6, posArr6);
+                    result = putToPos(code, posArr6, i, j);
                     break;
                 case 7:
-                    result = put(code, shape7[0].length, shape7.length, shape7, posArr7);
+                    result = putToPos(code, posArr7, i, j);
                     break;
                 case 8:
-                    result = put(code, shape8[0].length, shape8.length, shape8, posArr8);
+                    result = putToPos(code, posArr8, i, j);
                     break;
                 default:
+                    currForm = 1;
                     return false;
             }
             if (result) {

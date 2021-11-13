@@ -1,4 +1,4 @@
-package com.lkn.game;
+package com.lkn.new_game;
 
 public class I extends Shape {
 
@@ -19,14 +19,15 @@ public class I extends Shape {
     }
 
     @Override
-    protected boolean tryPut() {
+    protected boolean tryPut(int i, int j) {
         boolean result;
         while (true) {
             switch (currForm) {
                 case 1:
-                    result = put(code, shape1[0].length, shape1.length, shape1, posArr1);
+                    result = putToPos(code, posArr1, i, j);
                     break;
                 default:
+                    currForm = 1;
                     return false;
             }
             if (result) {

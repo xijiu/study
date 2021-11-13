@@ -1,4 +1,6 @@
-package com.lkn.game;
+package com.lkn.new_game;
+
+import java.util.Arrays;
 
 public class B extends Shape {
 
@@ -45,6 +47,24 @@ public class B extends Shape {
             {1, 1, 1, 1},
     };
 
+    public static void main(String[] args) {
+        B b = new B(null, null);
+
+        int[][] ints = b.genericArr(b.origin8);
+        for (int i = 0; i < ints.length; i++) {
+            for (int j = 0; j < ints[i].length; j++) {
+                System.out.print(ints[i][j] + ", ");
+            }
+            System.out.println();
+        }
+
+        int[] ints1 = b.genericPosArr(b.origin8);
+        for (int i = 0; i < ints1.length; i++) {
+            System.out.print(ints1[i] + ",");
+        }
+
+    }
+
     private final int[][] shape1 = genericArr(origin1);
     private final int[] posArr1 = genericPosArr(origin1);
     private final int[][] shape2 = genericArr(origin2);
@@ -68,35 +88,36 @@ public class B extends Shape {
 
 
     @Override
-    protected boolean tryPut() {
+    protected boolean tryPut(int i, int j) {
         boolean result;
         while (true) {
             switch (currForm) {
                 case 1:
-                    result = put(code, shape1[0].length, shape1.length, shape1, posArr1);
+                    result = putToPos(code, posArr1, i, j);
                     break;
                 case 2:
-                    result = put(code, shape2[0].length, shape2.length, shape2, posArr2);
+                    result = putToPos(code, posArr2, i, j);
                     break;
                 case 3:
-                    result = put(code, shape3[0].length, shape3.length, shape3, posArr3);
+                    result = putToPos(code, posArr3, i, j);
                     break;
                 case 4:
-                    result = put(code, shape4[0].length, shape4.length, shape4, posArr4);
+                    result = putToPos(code, posArr4, i, j);
                     break;
                 case 5:
-                    result = put(code, shape5[0].length, shape5.length, shape5, posArr5);
+                    result = putToPos(code, posArr5, i, j);
                     break;
                 case 6:
-                    result = put(code, shape6[0].length, shape6.length, shape6, posArr6);
+                    result = putToPos(code, posArr6, i, j);
                     break;
                 case 7:
-                    result = put(code, shape7[0].length, shape7.length, shape7, posArr7);
+                    result = putToPos(code, posArr7, i, j);
                     break;
                 case 8:
-                    result = put(code, shape8[0].length, shape8.length, shape8, posArr8);
+                    result = putToPos(code, posArr8, i, j);
                     break;
                 default:
+                    currForm = 1;
                     return false;
             }
             if (result) {

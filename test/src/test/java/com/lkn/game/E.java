@@ -5,41 +5,41 @@ package com.lkn.game;
  */
 public class E extends Shape {
 
-    private static byte code = 5;
+    private static byte code = 4;
 
 
-    private final byte[][] origin1 = new byte[][] {
+    private final int[][] origin1 = new int[][] {
             {1, 0, 0},
             {1, 1, 0},
             {0, 1, 1},
     };
-    private final byte[][] origin2 = new byte[][] {
+    private final int[][] origin2 = new int[][] {
             {0, 0, 1},
             {0, 1, 1},
             {1, 1, 0},
     };
-    private final byte[][] origin3 = new byte[][] {
+    private final int[][] origin3 = new int[][] {
             {1, 1, 0},
             {0, 1, 1},
             {0, 0, 1},
     };
-    private final byte[][] origin4 = new byte[][] {
+    private final int[][] origin4 = new int[][] {
             {0, 1, 1},
             {1, 1, 0},
             {1, 0, 0},
     };
 
-    private final byte[][] shape1 = genericArr(origin1);
+    private final int[][] shape1 = genericArr(origin1);
     private final int[] posArr1 = genericPosArr(origin1);
-    private final byte[][] shape2 = genericArr(origin2);
+    private final int[][] shape2 = genericArr(origin2);
     private final int[] posArr2 = genericPosArr(origin2);
-    private final byte[][] shape3 = genericArr(origin3);
+    private final int[][] shape3 = genericArr(origin3);
     private final int[] posArr3 = genericPosArr(origin3);
-    private final byte[][] shape4 = genericArr(origin4);
+    private final int[][] shape4 = genericArr(origin4);
     private final int[] posArr4 = genericPosArr(origin4);
 
-    public E(int[][] board) {
-        super(board);
+    public E(byte[][] board, Shape next) {
+        super(board, next);
     }
 
     @Override

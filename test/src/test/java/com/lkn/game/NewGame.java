@@ -1,11 +1,11 @@
 package com.lkn.game;
 
 
-import java.util.*;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class Game {
+public class NewGame {
     public static final int steps = 12;
 
     public static final int boardWidth = 5;
@@ -16,47 +16,59 @@ public class Game {
 
     public byte[][] board = new byte[boardWidth][steps];
 
-    private final L l = new L(board, null);
-    private final K k = new K(board, l);
-    private final J j = new J(board, k);
-    private final I i = new I(board, j);
-    private final H h = new H(board, i);
-    private final G g = new G(board, h);
-    private final F f = new F(board, g);
-    private final E e = new E(board, f);
-    private final D d = new D(board, e);
-    private final C c = new C(board, d);
-    private final B b = new B(board, c);
-    private final A a = new A(board, b);
+    private final L l_ = new L(board, null);
+    private final K k_ = new K(board, l_);
+    private final J j_ = new J(board, k_);
+    private final I i_ = new I(board, j_);
+    private final H h_ = new H(board, i_);
+    private final G g_ = new G(board, h_);
+    private final F f_ = new F(board, g_);
+    private final E e_ = new E(board, f_);
+    private final D d_ = new D(board, e_);
+    private final C c_ = new C(board, d_);
+    private final B b_ = new B(board, c_);
+    private final A a_ = new A(board, b_);
 
-    private final Shape[] shapes = {a, b, c, d, e, f, g, h, i, j, k, l};
+    private final Shape[] shapes = {a_, b_, c_, d_, e_, f_, g_, h_, i_, j_, k_, l_};
 
     private static AtomicInteger succeedNum = new AtomicInteger();
 
     public static void main(String[] args) throws Exception {
-        long begin = System.currentTimeMillis();
-        int concurrent = 8;
-        Thread[] threads = new Thread[concurrent];
-        for (int i = 0; i < concurrent; i++) {
-            Game game = new Game();
-            game.a.currForm = i + 1;
-            threads[i] = new Thread(() -> {
-                long startTime = System.currentTimeMillis();
-                game.start(0);
-                long cost = System.currentTimeMillis() - startTime;
-                tryPutTotalTimes.addAndGet(game.tryPutTimes);
-                System.out.println("thread cost time is " + cost + ", tryPutTotalTimes is " + tryPutTotalTimes.get());
-            });
-            threads[i].start();
-        }
-
-        for (int i = 0; i < concurrent; i++) {
-            threads[i].join();
-        }
-        long cost = System.currentTimeMillis() - begin;
-        System.out.println("final find num is " + succeedNum.get());
-        System.out.println("time cost " + cost);
+        new NewGame().begin();
     }
+
+    private void begin() {
+        boolean[] putFlagArr = new boolean[steps];
+        Arrays.fill(putFlagArr, false);
+        int putIndex = 0;
+
+        int[] stack = new int[steps];
+        Arrays.fill(stack, -1);
+        int stackIndex = 0;
+        stack[0] = 0;
+
+        while (true) {
+            int shapeIndex = stack[stackIndex];
+            Shape shape = shapes[shapeIndex];
+            findEmptyPos();
+
+        }
+    }
+
+    private Pos emptyPos = new Pos();
+
+    private void findEmptyPos() {
+        for (int j = 0; j < steps; j++) {
+            for (int i = 0; i < boardWidth; i++) {
+                if (board[i][j] == 0) {
+                    emptyPos.i = i;
+                    emptyPos.j = j;
+                    break;
+                }
+            }
+        }
+    }
+
 
     int tryPutTimes = 0;
 
