@@ -69,23 +69,9 @@ public class NewGame {
                     System.out.println("find all");
                     findTimes++;
                     printBoard();
-                    while (true) {
-                        updateBoard(stack[stackIndex], -1);
 
-                        stackIndex--;
-                        if (stackIndex < 0) {
-                            System.out.println("over1");
-                            // 结束了
-                            return;
-                        }
-                        updateBoard(stack[stackIndex], -1);
-
-                        int index = findNextShape(shapes[stack[stackIndex]].getCode(), stack, stackIndex);
-                        if (index != 100) {
-                            stack[stackIndex] = index;
-                            break;
-                        }
-                    }
+                    updateBoard(stack[stackIndex--], -1);
+                    updateBoard(stack[stackIndex], -1);
                 } else {
                     int index = findNextShape(0, stack, stackIndex);
                     if (index != 100) {
