@@ -58,7 +58,7 @@ public class NewGame {
                 if (stackIndex == 11) {
                     // 找到一个答案，把答案print出来
                     findTimes++;
-                    printBoard();
+//                    printBoard();
 
                     updateBoard(stack[stackIndex--], -1);
                     shape.currForm = 1;
