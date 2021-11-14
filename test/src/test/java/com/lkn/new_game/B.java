@@ -1,10 +1,9 @@
 package com.lkn.new_game;
 
-import java.util.Arrays;
 
 public class B extends Shape {
 
-    private static byte code = 1;
+    private static final byte code = 1;
 
     private final int[][] origin1 = new int[][] {
             {1, 0},
@@ -47,43 +46,17 @@ public class B extends Shape {
             {1, 1, 1, 1},
     };
 
-    public static void main(String[] args) {
-        B b = new B(null, null);
-
-        int[][] ints = b.genericArr(b.origin8);
-        for (int i = 0; i < ints.length; i++) {
-            for (int j = 0; j < ints[i].length; j++) {
-                System.out.print(ints[i][j] + ", ");
-            }
-            System.out.println();
-        }
-
-        int[] ints1 = b.genericPosArr(b.origin8);
-        for (int i = 0; i < ints1.length; i++) {
-            System.out.print(ints1[i] + ",");
-        }
-
-    }
-
-    private final int[][] shape1 = genericArr(origin1);
     private final int[] posArr1 = genericPosArr(origin1);
-    private final int[][] shape2 = genericArr(origin2);
     private final int[] posArr2 = genericPosArr(origin2);
-    private final int[][] shape3 = genericArr(origin3);
     private final int[] posArr3 = genericPosArr(origin3);
-    private final int[][] shape4 = genericArr(origin4);
     private final int[] posArr4 = genericPosArr(origin4);
-    private final int[][] shape5 = genericArr(origin5);
     private final int[] posArr5 = genericPosArr(origin5);
-    private final int[][] shape6 = genericArr(origin6);
     private final int[] posArr6 = genericPosArr(origin6);
-    private final int[][] shape7 = genericArr(origin7);
     private final int[] posArr7 = genericPosArr(origin7);
-    private final int[][] shape8 = genericArr(origin8);
     private final int[] posArr8 = genericPosArr(origin8);
 
-    public B(byte[][] board, Shape next) {
-        super(board, next);
+    public B(byte[][] board) {
+        super(board);
     }
 
 

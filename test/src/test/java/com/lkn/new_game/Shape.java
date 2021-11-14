@@ -10,9 +10,8 @@ public abstract class Shape {
     protected Shape next = null;
 
 
-    public Shape(byte[][] board, Shape next) {
+    public Shape(byte[][] board) {
         this.board = board;
-        this.next = next;
     }
 
     protected abstract boolean tryPut(int i, int j);

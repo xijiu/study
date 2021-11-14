@@ -8,26 +8,16 @@ public class NewGame {
 
     public static final int boardWidth = 5;
 
-    public byte[][] board = new byte[boardWidth][steps];
+    public final byte[][] board = new byte[boardWidth][steps];
 
-    private final L l_ = new L(board, null);
-    private final K k_ = new K(board, l_);
-    private final J j_ = new J(board, k_);
-    private final I i_ = new I(board, j_);
-    private final H h_ = new H(board, i_);
-    private final G g_ = new G(board, h_);
-    private final F f_ = new F(board, g_);
-    private final E e_ = new E(board, f_);
-    private final D d_ = new D(board, e_);
-    private final C c_ = new C(board, d_);
-    private final B b_ = new B(board, c_);
-    private final A a_ = new A(board, b_);
-
-    private final Shape[] shapes = {a_, b_, c_, d_, e_, f_, g_, h_, i_, j_, k_, l_};
+    private final Shape[] shapes = {
+            new A(board), new B(board), new C(board), new D(board),
+            new E(board), new F(board), new G(board), new H(board),
+            new I(board), new J(board), new K(board), new L(board)};
 
     private static int findTimes = 0;
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         long beginTime = System.currentTimeMillis();
         new NewGame().begin();
         long cost = System.currentTimeMillis() - beginTime;
@@ -36,13 +26,7 @@ public class NewGame {
     }
 
     private void begin() {
-        for (int i = 0; i < boardWidth; i++) {
-            for (int j = 0; j < steps; j++) {
-                board[i][j] = -1;
-            }
-        }
-        boolean[] putFlagArr = new boolean[steps];
-        Arrays.fill(putFlagArr, false);
+        updateBoard(0, -1);
 
         int[] stack = new int[steps];
         Arrays.fill(stack, -1);
@@ -58,7 +42,7 @@ public class NewGame {
                 if (stackIndex == 11) {
                     // 找到一个答案，把答案print出来
                     findTimes++;
-//                    printBoard();
+                    printBoard();
 
                     updateBoard(stack[stackIndex--], -1);
                     shape.currForm = 1;
@@ -104,7 +88,7 @@ public class NewGame {
         return 100;
     }
 
-    private Pos emptyPos = new Pos();
+    private final Pos emptyPos = new Pos();
 
     private void findEmptyPos() {
         for (int j = 0; j < steps; j++) {
@@ -117,7 +101,6 @@ public class NewGame {
             }
         }
     }
-
 
     private void updateBoard(int origin, int update) {
         for (int i = 0; i < 5; i++) {

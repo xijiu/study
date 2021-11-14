@@ -2,7 +2,7 @@ package com.lkn.new_game;
 
 public class G extends Shape {
 
-    private static byte code = 6;
+    private static final byte code = 6;
 
     private final int[][] origin1 = new int[][] {
             {1, 1, 1, 1, 1},
@@ -15,13 +15,11 @@ public class G extends Shape {
             {1},
     };
 
-    private final int[][] shape1 = genericArr(origin1);
     private final int[] posArr1 = genericPosArr(origin1);
-    private final int[][] shape2 = genericArr(origin2);
     private final int[] posArr2 = genericPosArr(origin2);
 
-    public G(byte[][] board, Shape next) {
-        super(board, next);
+    public G(byte[][] board) {
+        super(board);
     }
 
 
