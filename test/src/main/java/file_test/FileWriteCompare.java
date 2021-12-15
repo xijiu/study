@@ -1,5 +1,6 @@
 package file_test;
 
+import junit.framework.TestCase;
 import org.junit.Test;
 
 import java.io.File;
@@ -21,7 +22,7 @@ public class FileWriteCompare {
 
     private static boolean warmFile = true;
 
-    private static int batchSize = 4096 * 1000;
+    private static int batchSize = 4096;
 
     @Test
     public void test() throws Exception {
@@ -56,5 +57,11 @@ public class FileWriteCompare {
             mappedByteBuffer.put(i, (byte) 0);
         }
         System.out.println("warm file time cost " + (System.currentTimeMillis() - begin));
+    }
+
+
+    @Test
+    public void acquireResult() {
+        System.out.println(123);
     }
 }
