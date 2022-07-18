@@ -11,11 +11,14 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.handler.codec.bytes.ByteArrayDecoder;
+import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import org.junit.Test;
 
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 为了解决TCP协议的粘包问题，每次发送消息都指定消息长度，比较通用
@@ -34,6 +37,16 @@ public class Server {
     }
 
     private void doRun() throws Exception {
+        DefaultEventExecutorGroup defaultEventExecutorGroup = new DefaultEventExecutorGroup(
+                4,
+                new ThreadFactory() {
+                    private AtomicInteger threadIndex = new AtomicInteger(0);
+                    @Override
+                    public Thread newThread(Runnable r) {
+                        return new Thread(r, "NettyClientWorkerThread_" + this.threadIndex.incrementAndGet());
+                    }
+                });
+
         EventLoopGroup group = new NioEventLoopGroup();
         ServerBootstrap serverBootstrap = new ServerBootstrap();
         serverBootstrap
@@ -45,9 +58,12 @@ public class Server {
                     protected void initChannel(SocketChannel ch) {
                         // 这里将LengthFieldBasedFrameDecoder添加到pipeline的首位，因为其需要对接收到的数据
                         // 进行长度字段解码，这里也会对数据进行粘包和拆包处理
+//                        ch.pipeline().addFirst(defaultEventExecutorGroup);
+
                         ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(409600, 0, 4, 0, 4));
                         ch.pipeline().addLast(new LengthFieldPrepender(4));
                         ch.pipeline().addLast(new ByteArrayDecoder());
+//                        ch.pipeline().addLast(defaultEventExecutorGroup, "test", new MyServerHandler());
                         ch.pipeline().addLast(new MyServerHandler());
                     }
                 });
@@ -72,7 +88,9 @@ public class Server {
         public void channelRead(ChannelHandlerContext ctx, Object jsonObj) throws Exception {
             byte[] bytes = (byte[]) jsonObj;
             String msg = new String(bytes);
-            System.out.println("receive msg " + msg);
+            System.out.println(Thread.currentThread().getName() + " receive msg " + msg);
+
+//            Thread.sleep(1000);
 
             notifyClientToSendData(ctx, "收到");
         }

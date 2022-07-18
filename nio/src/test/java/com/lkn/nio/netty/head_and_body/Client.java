@@ -21,36 +21,66 @@ import java.util.concurrent.ExecutionException;
 public class Client {
     private final String host = "localhost";
 
-    private static volatile boolean connectFlag = false;
+    private static int clientNum = 2;
 
-    private static MyClientHandler myClientHandler = new MyClientHandler();
+    private static volatile boolean[] connectFlag = new boolean[clientNum];
+
+    private static MyClientHandler[] myClientHandler = new MyClientHandler[clientNum];
+
+    static {
+        for (int i = 0; i < clientNum; i++) {
+            myClientHandler[i] = new MyClientHandler(i);
+        }
+    }
 
     @Test
-    public void startClient() throws Exception {
+    public void testMultiClient() throws Exception {
+        Thread[] threads = new Thread[2];
+        for (int i = 0; i < threads.length; i++) {
+            int finalI = i;
+            threads[i] = new Thread(() -> {
+                try {
+                    startClient(finalI);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+            threads[i].start();
+        }
+
+        for (int i = 0; i < threads.length; i++) {
+            threads[i].join();
+        }
+    }
+
+//    @Test
+    public void startClient(int index) throws Exception {
         // 启动client线程
         new Thread(() -> {
             try {
                 Client client = new Client();
-                client.doRun();
+                client.doRun(index);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }).start();
 
         // 判断client线程是否与server端建立连接
-        while (!connectFlag) {
+        while (!connectFlag[index]) {
             Thread.sleep(1);
         }
 
         // 发送数据
         for (int i = 0; i < 10; i++) {
-            syncSendMsg(("msg " + i).getBytes());
+            System.out.println("准备发送消息");
+            syncSendMsg(index, ("msg " + i).getBytes());
+            System.out.println("发送消息结束");
         }
 
         Thread.sleep(100);
     }
 
-    private void doRun() throws Exception {
+    private void doRun(int index) throws Exception {
         EventLoopGroup group = new NioEventLoopGroup();
 
         Bootstrap bootstrap = new Bootstrap();
@@ -63,7 +93,7 @@ public class Client {
                         ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(409600, 0, 4, 0, 4));
                         ch.pipeline().addLast(new LengthFieldPrepender(4));
                         ch.pipeline().addLast(new ByteArrayDecoder());
-                        ch.pipeline().addLast(myClientHandler);
+                        ch.pipeline().addLast(myClientHandler[index]);
                     }
                 }).option(ChannelOption.SO_KEEPALIVE, true);
         ChannelFuture f = bootstrap.connect().sync();
@@ -72,16 +102,18 @@ public class Client {
         group.shutdownGracefully().sync();
     }
 
-    public void sendMsg(byte[] msg) {
-        myClientHandler.sendMsg(msg);
-    }
-
-    public void syncSendMsg(byte[] msg) {
-        myClientHandler.syncSendMsg(msg);
+    public void syncSendMsg(int index, byte[] msg) {
+        myClientHandler[index].syncSendMsg(msg);
     }
 
 
     private static class MyClientHandler extends SimpleChannelInboundHandler<byte[]> {
+
+        private int index;
+
+        public MyClientHandler(int index) {
+            this.index = index;
+        }
 
         private ChannelHandlerContext ctx;
 
@@ -89,7 +121,7 @@ public class Client {
         public void channelActive(ChannelHandlerContext ctx) throws Exception {
             System.out.println("client连接成功");
             this.ctx = ctx;
-            connectFlag = true;
+            connectFlag[index] = true;
         }
 
         @Override							//从服务器收到一条消息时被调用

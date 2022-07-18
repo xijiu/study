@@ -23,6 +23,7 @@
         <module>multithreading</module>
         <module>leetcode</module>
         <module>test</module>
+        <module>spring-boot-test</module>
     </modules>
     <packaging>pom</packaging>
 
@@ -49,6 +50,7 @@
                 <artifactId>lombok</artifactId>
                 <version>1.16.10</version>
             </dependency>
+
 
             <dependency>
                 <groupId>org.apache.hbase</groupId>
@@ -140,6 +142,12 @@
                 <groupId>net.smacke</groupId>
                 <artifactId>jaydio</artifactId>
                 <version>0.1</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.yammer.metrics</groupId>
+                <artifactId>metrics-core</artifactId>
+                <version>2.2.0</version>
             </dependency>
 
         </dependencies>

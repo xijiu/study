@@ -1,0 +1,13 @@
+spring:
+  mvc:
+    # URL响应地址（Springboot默认为/**)
+    static-path-pattern: /SystemData/**
+  web:
+    resources:
+      # 静态文件地址，保留官方内容后，进行追加
+      static-locations: classpath:/static,classpath:/public,classpath:/resources,classpath:/META-INF/resources,file:SystemData
+
+server:
+  port: 8080
+  additionalPorts: 8081,8082
+
