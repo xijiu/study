@@ -24,6 +24,7 @@
         <module>leetcode</module>
         <module>test</module>
         <module>spring-boot-test</module>
+        <module>dag</module>
     </modules>
     <packaging>pom</packaging>
 

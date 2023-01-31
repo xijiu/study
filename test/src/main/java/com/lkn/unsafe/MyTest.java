@@ -470,7 +470,7 @@ public class MyTest {
 
 	@Test
 	public void abctest() {
-		String str = "6c528f4fe5cf5492|1592840907843108|3fcec995dbf47462|547868d1ba177b97|146|OrderCenter|checkAndRefresh|192.168.111.186|http.status_code=200&component=java-web-servlet&span.kind=server&http.url=http://tracing.console.aliyun.com/createOrder&&component=java-web-servlet&span.kind=server&http.url=http://tracing.console.aliyun.com/createOrder&entrance=pc&http.method=GET&userId=89982&entrance=pc&http.method=GET&userId=89982&userId=89982\n";
+		String str = "6c528f4fe5cf5492|1592840907843108|3fcec995dbf47462|547868d1ba177b97|146|OrderCenter|checkAndRefresh|192.168.111.186|http.status_code=200&component=java-web-servlet&span.kind=server&http.url=http://tracing.console.com/createOrder&&component=java-web-servlet&span.kind=server&http.url=http://tracing.console.com/createOrder&entrance=pc&http.method=GET&userId=89982&entrance=pc&http.method=GET&userId=89982&userId=89982\n";
 		byte[] bytes = str.getBytes();
 		long begin = System.currentTimeMillis();
 		boolean result = false;
@@ -644,7 +644,7 @@ public class MyTest {
 
 	@Test
 	public void abctest333() {
-		String str = "1c4fb8577e2083c4|1592840909310711|1fe990551982895|52fe6e0cd846661|434|Frontend|db.UserFeeStatusDao.query(..)|192.168.192.27|&http.status_code=504&component=java-spring-rest-template&span.kind=client&http.url=http://tracing.console.aliyun.com/createOrder?id=2&peer.port=9002&http.method=GET&http.method=GET\n";
+		String str = "1c4fb8577e2083c4|1592840909310711|1fe990551982895|52fe6e0cd846661|434|Frontend|db.UserFeeStatusDao.query(..)|192.168.192.27|&http.status_code=504&component=java-spring-rest-template&span.kind=client&http.url=http://tracing.console.com/createOrder?id=2&peer.port=9002&http.method=GET&http.method=GET\n";
 		byte[] bytes = str.getBytes();
 //		for (int i = 0; i < bytes.length; i++) {
 //			if (bytes[i] == '|') {

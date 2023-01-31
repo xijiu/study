@@ -2,7 +2,9 @@ package thread_pool;
 
 import org.junit.Test;
 
+import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -53,9 +55,13 @@ public class MyTest {
 
     @Test
     public void test() {
-        StringBuilder sb = new StringBuilder("123456789");
-        sb.delete(sb.length() - 2, sb.length());
-        System.out.println(sb);
-        System.out.println("hologres_zyb_zbk_bzr_zyb_zbk_bzr_ads_ads_zbk_adl_recruit_activity".length());
+        Map<String, Boolean> map = new ConcurrentHashMap<>();
+        System.out.println(map.putIfAbsent("abc", true));
+        System.out.println(map.putIfAbsent("abc", false));
+        System.out.println(map.get("abc"));
+    }
+    @Test
+    public void test2() {
+        System.out.println((int) Math.ceil(1D / 15));
     }
 }

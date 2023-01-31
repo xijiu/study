@@ -6,6 +6,7 @@ import com.google.common.collect.Maps;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.RandomUtils;
 import org.junit.Test;
 import sun.misc.SharedSecrets;
 
@@ -183,4 +184,13 @@ public class MyTest {
         assistSet.add(1);
         System.out.println(assistSet);
     }
+
+    @Test
+    public void test5() {
+        for (int i = 0; i < 10; i++) {
+            System.out.println(RandomUtils.nextLong(1000, 2000));
+        }
+    }
+
+
 }
