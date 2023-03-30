@@ -19,5 +19,15 @@ public class Son extends Father {
         return 0;
     }
 
+    public static void main(String[] args) {
+        String str = "593G+357G+296G+253G";
+        String[] split = str.split("\\+");
+        int sum = 0;
+        for (String s : split) {
+            sum += Integer.parseInt(s.substring(0, 3));
+        }
+        System.out.println("sum is " + sum);
+    }
+
 
 }

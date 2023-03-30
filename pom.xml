@@ -25,6 +25,7 @@
         <module>test</module>
         <module>spring-boot-test</module>
         <module>dag</module>
+        <module>flink-demo</module>
     </modules>
     <packaging>pom</packaging>
 

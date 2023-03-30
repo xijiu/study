@@ -1,5 +1,6 @@
-package com.lkn.nio.jdk.jdk_client;
+package com.lkn.nio.jdk.simple;
 
+import com.lkn.nio.jdk.simple.Server;
 import org.junit.Test;
 
 import java.net.InetSocketAddress;
@@ -20,7 +21,7 @@ public class Client {
 
 		socketChannel = SocketChannel.open();
 		socketChannel.configureBlocking(false);
-		socketChannel.connect(new InetSocketAddress("localhost", 8080));
+		socketChannel.connect(new InetSocketAddress("localhost", Server.PORT));
 		if (socketChannel.finishConnect()) {
 			int i = 0;
 			while (true) {

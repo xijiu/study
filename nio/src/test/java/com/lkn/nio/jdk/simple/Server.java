@@ -1,4 +1,4 @@
-package com.lkn.nio.jdk.jdk_server;
+package com.lkn.nio.jdk.simple;
 
 import org.junit.Test;
 
@@ -17,7 +17,7 @@ import java.util.Iterator;
  */
 public class Server {
 	private static final int BUF_SIZE = 1024;
-	private static final int PORT = 8080;
+	public static final int PORT = 8081;
 	private static final int TIMEOUT = 3000;
 
 
@@ -56,6 +56,7 @@ public class Server {
 	}
 
 	private void handleAccept(SelectionKey key) throws IOException {
+		System.out.println("handleAccept");
 		ServerSocketChannel serverSocketChannel = (ServerSocketChannel) key.channel();
 		SocketChannel socketChannel = serverSocketChannel.accept();
 		socketChannel.configureBlocking(false);
@@ -63,16 +64,17 @@ public class Server {
 	}
 
 	private void handleRead(SelectionKey key) throws Exception {
+		System.out.println("handleRead");
 		SocketChannel socketChannel = (SocketChannel) key.channel();
 		ByteBuffer buf = (ByteBuffer) key.attachment();
 		long bytesRead = socketChannel.read(buf);
 		while (bytesRead > 0) {
 			buf.flip();
-			System.out.print(Thread.currentThread().getName() + " : ");
+			StringBuilder receive = new StringBuilder();
 			while (buf.hasRemaining()) {
-				System.out.print((char) buf.get());
+				receive.append((char) buf.get());
 			}
-			System.out.println();
+			System.out.println("receive client msg: " + receive);
 			buf.clear();
 			bytesRead = socketChannel.read(buf);
 			System.out.println("查询DB需要消耗3秒时间");
@@ -84,6 +86,7 @@ public class Server {
 	}
 
 	private void handleWrite(SelectionKey key) throws IOException {
+		System.out.println("handleWrite");
 		ByteBuffer buf = (ByteBuffer) key.attachment();
 		buf.flip();
 		SocketChannel sc = (SocketChannel) key.channel();

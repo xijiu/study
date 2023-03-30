@@ -53,16 +53,24 @@ public class ReadTest {
 
 	@Test
 	public void mappedBufferRead() throws Exception {
-		RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
-		FileChannel fileChannel = randomAccessFile.getChannel();
-		MappedByteBuffer mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, Integer.MAX_VALUE);
-
-		byte[] bytes = new byte[1024 * 16];
-		while (mappedByteBuffer.hasRemaining()) {
-			ByteBuffer byteBuffer = mappedByteBuffer.get(bytes);
+		File file = new File("/Users/likangning/test/test123.index");
+		if (file.exists()) {
+			file.delete();
 		}
+		FileChannel fileChannel = FileChannel.open(file.toPath());
 		fileChannel.close();
-		randomAccessFile.close();
+	}
+
+	@Test
+	public void mappedBufferRead2() throws Exception {
+		File file = new File("/Users/likangning/test/test123.index");
+		if (file.exists()) {
+			file.delete();
+		}
+		RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
+		randomAccessFile.setLength(10 * 1024 * 1024);
+		FileChannel fileChannel = randomAccessFile.getChannel();
+		fileChannel.close();
 	}
 
 }

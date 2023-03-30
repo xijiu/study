@@ -30,6 +30,10 @@ import java.util.concurrent.TimeUnit;
 
 public class GraphUtil {
 
+    public GraphUtil() {
+        System.out.println("GraphUtil init");
+    }
+
     private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
 

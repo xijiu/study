@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author likangning
@@ -77,4 +78,35 @@ public class ThreadTest {
 		}
 		System.out.println(sb.toString());
 	}
+
+	private static void sleepSecond(int second) {
+		try {
+			TimeUnit.SECONDS.sleep(second);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void main(String[] args) {
+		System.out.println(Thread.currentThread().isDaemon());
+		System.out.println(Thread.currentThread().getName());
+		Thread thread = new Thread(() -> {
+			Thread thread2 = new Thread(() -> {
+				System.out.println("thread1 isDaemon " + Thread.currentThread().isDaemon());
+				sleepSecond(5);
+				System.out.println("thread2 over");
+			});
+			thread2.setDaemon(false);
+			thread2.start();
+
+			sleepSecond(2);
+			System.out.println(Thread.currentThread().isDaemon());
+			System.out.println("thread1 over");
+		});
+		thread.setDaemon(true);
+		thread.start();
+		sleepSecond(1);
+	}
+
+
 }
