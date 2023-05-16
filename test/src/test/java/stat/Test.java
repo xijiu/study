@@ -11,9 +11,9 @@ public class Test implements MyService<String> {
 
     private int num = 8;
 
-    private GraphUtil graphUtil = new GraphUtil();
+    protected GraphUtil graphUtil = new GraphUtil();
 
-    private Test() {
+    public Test() {
         new Thread(() -> System.out.println(num)).start();
     }
 
@@ -33,5 +33,22 @@ public class Test implements MyService<String> {
 
         String result = future.get();
         System.out.println("thread completed, result is " + result);
+    }
+
+
+    private static class Son1 extends Test {
+        public Son1() {}
+    }
+
+    private static class Son2 extends Test {
+        public Son2() {}
+    }
+
+    @org.junit.Test
+    public void test3() {
+        Son1 son1 = new Son1();
+        Son2 son2 = new Son2();
+        System.out.println(son1.graphUtil);
+        System.out.println(son2.graphUtil);
     }
 }

@@ -24,12 +24,44 @@ public class MyTest {
 	static {
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
-			connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/wolong_extend?rewriteBatchedStatements=true&useServerPrepStmts=true","root","root");
+			connection = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/fly?useUnicode=true","root","root");
 			connection.setAutoCommit(true);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
+
+
+	@Test
+	public void insertTestNew() throws Exception {
+		String insertSql = "INSERT INTO `fly`.`deploy_task` (`seq`, `task_id`, `instance_id`, `task_level`, `action`, `target_id`, `status`, `exec`, `data`, `modify_by`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		connection.setAutoCommit(false);
+		PreparedStatement ps = connection.prepareStatement(insertSql);
+		long begin = System.currentTimeMillis();
+		for (int i = 0; i < 1000000; i++) {
+			ps.setInt(1, new Random().nextInt());
+			ps.setString(2, System.currentTimeMillis() + "");
+			ps.setString(3, System.currentTimeMillis() + "");
+			ps.setInt(4, 0);
+			ps.setString(5, "DEPLOY2");
+			ps.setString(6, System.currentTimeMillis() + "");
+			ps.setInt(7, 1);
+			ps.setInt(8, 1);
+			ps.setString(9, "{\"currConfig\":{\"acrossZone\":false,\"descVersion\":1,\"diskCategory\":\"cloud_efficiency\",\"diskSize\":900,\"enableAcl\":false,\"enableVpcSasl\":true,\"forceAcrossZone\":false,\"instanceId\":\"alikafka_post-cn-zvp2mrxzk00d\",\"ioMaxSpec\":\"alikafka.hw2.300xlarge\",\"maxMsgSize\":10,\"msgStoreTime\":10000,\"nodes\":{101:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":101},102:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":102},103:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":103},104:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":104},105:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":105},106:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":106},107:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":107},108:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":108},109:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":109},110:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":110},111:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":111},112:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":112},113:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":113},114:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":114},115:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":115}},\"offsetStoreTime\":10000,\"ourVpcId\":\"ourVpcId\",\"pubNet\":0,\"regionId\":\"cn-beijing\",\"specType\":\"professional\",\"state\":\"running\",\"tieredNas\":true,\"tieredNasStoreSpace\":0,\"vSwitchId\":\"vSwitchId\",\"version\":\"8.0.10.2-5.0.3\",\"vpcId\":\"vpcId\"},\"exeNum\":1352,\"majorHandler\":\"CLUSTER_UPDATE\",\"newConfig\":{\"acrossZone\":false,\"descVersion\":1,\"diskCategory\":\"cloud_efficiency\",\"diskSize\":900,\"enableAcl\":false,\"enableVpcSasl\":true,\"forceAcrossZone\":false,\"instanceId\":\"alikafka_post-cn-zvp2mrxzk00d\",\"ioMaxSpec\":\"alikafka.hw2.1000xlarge\",\"maxMsgSize\":10,\"msgStoreTime\":10000,\"nodes\":{128:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":128},129:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":129},130:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":130},131:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":131},132:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":132},133:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":133},134:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":134},135:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":135},136:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":136},137:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":137},138:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":138},139:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":139},140:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":140},141:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":141},142:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":142},143:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":143},144:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":144},145:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":145},146:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":146},147:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":147},148:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":148},149:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":149},150:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":150},101:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":101},102:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":102},103:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":103},104:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":104},105:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":105},106:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":106},107:{\"cpu\":4,\"disk\":0,\"memory\":16,\"nodeIndex\":107},108:{\"cpu\":4,\"disk\"");
+			ps.setString(10, "deploy2");
+			ps.executeUpdate();
+			if (i % 1000 == 0) {
+				connection.commit();
+			}
+			if (i % 10000 == 0) {
+				System.out.println(i);
+			}
+		}
+		long cost = System.currentTimeMillis() - begin;
+		System.out.println("耗时 ： "  + cost);
+		connection.close();
+	}
+
 
 
 

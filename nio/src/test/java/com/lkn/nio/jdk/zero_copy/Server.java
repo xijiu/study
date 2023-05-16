@@ -1,5 +1,6 @@
 package com.lkn.nio.jdk.zero_copy;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -49,7 +50,7 @@ public class Server {
 		fileChannel.write(byteBuffer, 0);
 	}
 
-	@Before
+	@After
 	public void after() {
 		if (file.exists()) {
 			file.delete();
@@ -96,7 +97,9 @@ public class Server {
 		ServerSocketChannel serverSocketChannel = (ServerSocketChannel) key.channel();
 		SocketChannel socketChannel = serverSocketChannel.accept();
 		socketChannel.configureBlocking(false);
+		// 这里是为了方便，只用到了一个selector，真实生产环境中，会区分多个selector来管理不同的请求
 		socketChannel.register(key.selector(), SelectionKey.OP_READ, ByteBuffer.allocateDirect(BUF_SIZE));
+		System.out.println("Accept over");
 	}
 
 	private void handleRead(SelectionKey key, Selector selector) throws Exception {
@@ -120,6 +123,7 @@ public class Server {
 		}
 
 		socketChannel.register(selector, SelectionKey.OP_WRITE);
+		System.out.println("read over");
 	}
 
 	private void handleWrite(SelectionKey key, Selector selector) throws IOException {
@@ -136,13 +140,9 @@ public class Server {
 
 		fileChannel.transferTo(8, 4, socketChannel);
 
-		socketChannel.register(selector,SelectionKey.OP_READ);
+		socketChannel.register(selector, SelectionKey.OP_READ);
 
-//		ByteBuffer allocate = ByteBuffer.allocate(4);
-//		allocate.putInt(888);
-//		allocate.flip();
-//		socketChannel.write(allocate);
-//		socketChannel.register(selector,SelectionKey.OP_READ);
+		System.out.println("write over");
 	}
 
 
