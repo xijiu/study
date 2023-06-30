@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8'>
+<style>
+	body {margin: 0; padding: 10px; background-color: #ffffff}
+	h1 {margin: 5px 0 0 0; font-size: 18px; font-weight: normal; text-align: center}
+	header {margin: -24px 0 5px 0; line-height: 24px}
+	button {font: 12px sans-serif; cursor: pointer}
+	p {margin: 5px 0 5px 0}
+	a {color: #0366d6}
+	#hl {position: absolute; display: none; overflow: hidden; white-space: nowrap; pointer-events: none; background-color: #ffffe0; outline: 1px solid #ffc000; height: 15px}
+	#hl span {padding: 0 3px 0 3px}
+	#status {overflow: hidden; white-space: nowrap}
+	#match {overflow: hidden; white-space: nowrap; display: none; float: right; text-align: right}
+	#reset {cursor: pointer}
+	#canvas {width: 100%; height: 832px}
+</style>
+</head>
+<body style='font: 12px Verdana, sans-serif'>
+<h1>CPU profile</h1>
+<header style='text-align: left'><button id='reverse' title='Reverse'>&#x1f53b;</button>&nbsp;&nbsp;<button id='search' title='Search'>&#x1f50d;</button></header>
+<header style='text-align: right'>Produced by <a href='https://github.com/jvm-profiling-tools/async-profiler'>async-profiler</a></header>
+<canvas id='canvas'></canvas>
+<div id='hl'><span></span></div>
+<p id='match'>Matched: <span id='matchval'></span> <span id='reset' title='Clear'>&#x274c;</span></p>
+<p id='status'>&nbsp;</p>
+<script>
+	// Copyright 2020 Andrei Pangin
+	// Licensed under the Apache License, Version 2.0.
+	'use strict';
+	var root, rootLevel, px, pattern;
+	var reverse = false;
+	const levels = Array(52);
+	for (let h = 0; h < levels.length; h++) {
+		levels[h] = [];
+	}
+
+	const canvas = document.getElementById('canvas');
+	const c = canvas.getContext('2d');
+	const hl = document.getElementById('hl');
+	const status = document.getElementById('status');
+
+	const canvasWidth = canvas.offsetWidth;
+	const canvasHeight = canvas.offsetHeight;
+	canvas.style.width = canvasWidth + 'px';
+	canvas.width = canvasWidth * (devicePixelRatio || 1);
+	canvas.height = canvasHeight * (devicePixelRatio || 1);
+	if (devicePixelRatio) c.scale(devicePixelRatio, devicePixelRatio);
+	c.font = document.body.style.font;
+
+	const palette = [
+		[0xb2e1b2, 20, 20, 20],
+		[0x50e150, 30, 30, 30],
+		[0x50cccc, 30, 30, 30],
+		[0xe15a5a, 30, 40, 40],
+		[0xc8c83c, 30, 30, 10],
+		[0xe17d00, 30, 30,  0],
+		[0xcce880, 20, 20, 20],
+	];
+
+	function getColor(p) {
+		const v = Math.random();
+		return '#' + (p[0] + ((p[1] * v) << 16 | (p[2] * v) << 8 | (p[3] * v))).toString(16);
+	}
+
+	function f(level, left, width, type, title, inln, c1, int) {
+		levels[level].push({left: left, width: width, color: getColor(palette[type]), title: title,
+			details: (int ? ', int=' + int : '') + (c1 ? ', c1=' + c1 : '') + (inln ? ', inln=' + inln : '')
+		});
+	}
+
+	function samples(n) {
+		return n === 1 ? '1 sample' : n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' samples';
+	}
+
+	function pct(a, b) {
+		return a >= b ? '100' : (100 * a / b).toFixed(2);
+	}
+
+	function findFrame(frames, x) {
+		let left = 0;
+		let right = frames.length - 1;
+
+		while (left <= right) {
+			const mid = (left + right) >>> 1;
+			const f = frames[mid];
+
+			if (f.left > x) {
+				right = mid - 1;
+			} else if (f.left + f.width <= x) {
+				left = mid + 1;
+			} else {
+				return f;
+			}
+		}
+
+		if (frames[left] && (frames[left].left - x) * px < 0.5) return frames[left];
+		if (frames[right] && (x - (frames[right].left + frames[right].width)) * px < 0.5) return frames[right];
+
+		return null;
+	}
+
+	function search(r) {
+		if (r === true && (r = prompt('Enter regexp to search:', '')) === null) {
+			return;
+		}
+
+		pattern = r ? RegExp(r) : undefined;
+		const matched = render(root, rootLevel);
+		document.getElementById('matchval').textContent = pct(matched, root.width) + '%';
+		document.getElementById('match').style.display = r ? 'inherit' : 'none';
+	}
+
+	function render(newRoot, newLevel) {
+		if (root) {
+			c.fillStyle = '#ffffff';
+			c.fillRect(0, 0, canvasWidth, canvasHeight);
+		}
+
+		root = newRoot || levels[0][0];
+		rootLevel = newLevel || 0;
+		px = canvasWidth / root.width;
+
+		const x0 = root.left;
+		const x1 = x0 + root.width;
+		const marked = [];
+
+		function mark(f) {
+			return marked[f.left] >= f.width || (marked[f.left] = f.width);
+		}
+
+		function totalMarked() {
+			let total = 0;
+			let left = 0;
+			Object.keys(marked).sort(function(a, b) { return a - b; }).forEach(function(x) {
+				if (+x >= left) {
+					total += marked[x];
+					left = +x + marked[x];
+				}
+			});
+			return total;
+		}
+
+		function drawFrame(f, y, alpha) {
+			if (f.left < x1 && f.left + f.width > x0) {
+				c.fillStyle = pattern && f.title.match(pattern) && mark(f) ? '#ee00ee' : f.color;
+				c.fillRect((f.left - x0) * px, y, f.width * px, 15);
+
+				if (f.width * px >= 21) {
+					const chars = Math.floor(f.width * px / 7);
+					const title = f.title.length <= chars ? f.title : f.title.substring(0, chars - 2) + '..';
+					c.fillStyle = '#000000';
+					c.fillText(title, Math.max(f.left - x0, 0) * px + 3, y + 12, f.width * px - 6);
+				}
+
+				if (alpha) {
+					c.fillStyle = 'rgba(255, 255, 255, 0.5)';
+					c.fillRect((f.left - x0) * px, y, f.width * px, 15);
+				}
+			}
+		}
+
+		for (let h = 0; h < levels.length; h++) {
+			const y = reverse ? h * 16 : canvasHeight - (h + 1) * 16;
+			const frames = levels[h];
+			for (let i = 0; i < frames.length; i++) {
+				drawFrame(frames[i], y, h < rootLevel);
+			}
+		}
+
+		return totalMarked();
+	}
+
+	canvas.onmousemove = function() {
+		const h = Math.floor((reverse ? event.offsetY : (canvasHeight - event.offsetY)) / 16);
+		if (h >= 0 && h < levels.length) {
+			const f = findFrame(levels[h], event.offsetX / px + root.left);
+			if (f) {
+				if (f != root) getSelection().removeAllRanges();
+				hl.style.left = (Math.max(f.left - root.left, 0) * px + canvas.offsetLeft) + 'px';
+				hl.style.width = (Math.min(f.width, root.width) * px) + 'px';
+				hl.style.top = ((reverse ? h * 16 : canvasHeight - (h + 1) * 16) + canvas.offsetTop) + 'px';
+				hl.firstChild.textContent = f.title;
+				hl.style.display = 'block';
+				canvas.title = f.title + '\n(' + samples(f.width) + f.details + ', ' + pct(f.width, levels[0][0].width) + '%)';
+				canvas.style.cursor = 'pointer';
+				canvas.onclick = function() {
+					if (f != root) {
+						render(f, h);
+						canvas.onmousemove();
+					}
+				};
+				status.textContent = 'Function: ' + canvas.title;
+				return;
+			}
+		}
+		canvas.onmouseout();
+	}
+
+	canvas.onmouseout = function() {
+		hl.style.display = 'none';
+		status.textContent = '\xa0';
+		canvas.title = '';
+		canvas.style.cursor = '';
+		canvas.onclick = '';
+	}
+
+	canvas.ondblclick = function() {
+		getSelection().selectAllChildren(hl);
+	}
+
+	document.getElementById('reverse').onclick = function() {
+		reverse = !reverse;
+		render();
+	}
+
+	document.getElementById('search').onclick = function() {
+		search(true);
+	}
+
+	document.getElementById('reset').onclick = function() {
+		search(false);
+	}
+
+	window.onkeydown = function() {
+		if (event.ctrlKey && event.keyCode === 70) {
+			event.preventDefault();
+			search(true);
+		} else if (event.keyCode === 27) {
+			search(false);
+		}
+	}
+
+f(0,0,2187,3,'all')
+f(1,0,2169,1,'com/lkn/chess/Test.main')
+f(2,0,2169,1,'com/lkn/chess/Test.personWalk')
+f(3,0,2169,1,'com/lkn/chess/GamePlayHigh.computerWalk')
+f(4,0,2169,1,'com/lkn/chess/GamePlayHigh.think')
+f(5,0,2169,1,'com/lkn/chess/GamePlayHigh.think')
+f(6,0,2169,1,'com/lkn/chess/GamePlayHigh.think')
+f(7,0,2169,1,'com/lkn/chess/GamePlayHigh.think')
+f(8,0,2169,1,'com/lkn/chess/GamePlayHigh.think')
+f(9,0,2169,1,'com/lkn/chess/GamePlayHigh.think')
+f(10,0,1,1,'com/lkn/chess/GamePlayHigh.computeChessValue')
+f(11,0,1,1,'com/lkn/chess/bean/ChessBoard.genericNextStepPositionMap')
+f(12,0,1,1,'com/lkn/chess/bean/chess_piece/Pawns.getReachablePositions')
+f(13,0,1,1,'com/lkn/chess/bean/chess_piece/Pawns.findReachablePositions')
+f(14,0,1,2,'com/lkn/chess/bean/chess_piece/Pawns.tryReach',1,0,0)
+f(10,1,2168,1,'com/lkn/chess/GamePlayHigh.think')
+f(11,1,1,1,'com/lkn/chess/GamePlayHigh.computeChessValue')
+f(12,1,1,1,'com/lkn/chess/bean/chess_piece/Horse.valuation')
+f(13,1,1,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(11,2,2167,1,'com/lkn/chess/GamePlayHigh.think')
+f(12,2,2,1,'com/lkn/chess/GamePlayHigh.computeChessValue')
+f(13,3,1,1,'com/lkn/chess/bean/chess_piece/Pawns.valuation')
+f(14,3,1,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',1,0,0)
+f(15,3,1,2,'java/util/Arrays.sort',1,0,0)
+f(12,4,2164,1,'com/lkn/chess/GamePlayHigh.think')
+f(13,4,6,1,'com/lkn/chess/GamePlayHigh.computeChessValue')
+f(14,7,2,1,'com/lkn/chess/bean/ChessBoard.genericNextStepPositionMap')
+f(15,7,1,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(15,8,1,1,'com/lkn/chess/bean/chess_piece/Pawns.getReachablePositions')
+f(16,8,1,1,'com/lkn/chess/bean/chess_piece/Pawns.findReachablePositions')
+f(17,8,1,2,'com/lkn/chess/bean/chess_piece/Pawns.tryReach',1,0,0)
+f(14,9,1,1,'com/lkn/chess/bean/chess_piece/Rooks.valuation')
+f(13,10,2158,1,'com/lkn/chess/GamePlayHigh.think')
+f(14,11,19,1,'com/lkn/chess/GamePlayHigh.computeChessValue')
+f(15,17,9,2,'com/lkn/chess/bean/ChessBoard.genericNextStepPositionMap',4,0,0)
+f(16,20,1,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(16,21,1,1,'com/lkn/chess/bean/chess_piece/King.getReachablePositions')
+f(17,21,1,2,'com/lkn/chess/bean/chess_piece/King.findReachablePositions',1,0,0)
+f(18,21,1,2,'com/lkn/chess/bean/chess_piece/King.tryReachToEnemyKing',1,0,0)
+f(16,22,1,1,'com/lkn/chess/bean/chess_piece/Mandarins.getReachablePositions')
+f(17,22,1,2,'com/lkn/chess/bean/chess_piece/Mandarins.findReachablePositions',1,0,0)
+f(16,23,1,1,'com/lkn/chess/bean/chess_piece/Pawns.getReachablePositions')
+f(17,23,1,1,'com/lkn/chess/bean/chess_piece/Pawns.findReachablePositions')
+f(18,23,1,2,'com/lkn/chess/bean/chess_piece/Pawns.tryReach',1,0,0)
+f(16,24,1,1,'com/lkn/chess/bean/chess_piece/Rooks.getReachablePositions')
+f(16,25,1,3,'vtable stub')
+f(15,26,2,1,'com/lkn/chess/bean/chess_piece/Cannons.valuation')
+f(16,26,1,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',1,0,0)
+f(17,26,1,2,'java/util/Arrays.sort',1,0,0)
+f(16,27,1,1,'com/lkn/chess/bean/chess_piece/Cannons.calcHollow')
+f(17,27,1,1,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.findKingPositionByName')
+f(18,27,1,1,'com/lkn/chess/bean/chess_piece/King.type')
+f(15,28,1,1,'com/lkn/chess/bean/chess_piece/Horse.valuation')
+f(15,29,1,1,'com/lkn/chess/bean/chess_piece/Pawns.valuation')
+f(16,29,1,1,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue')
+f(17,29,1,1,'java/util/Arrays.sort')
+f(18,29,1,1,'java/util/DualPivotQuicksort.sort')
+f(14,30,2138,1,'com/lkn/chess/GamePlayHigh.think')
+f(15,30,13,1,'com/lkn/chess/GamePlayHigh.computeChessValue')
+f(16,36,2,2,'com/lkn/chess/bean/ChessBoard.genericNextStepPositionMap',1,0,0)
+f(17,37,1,1,'com/lkn/chess/bean/chess_piece/Pawns.getReachablePositions')
+f(16,38,2,1,'com/lkn/chess/bean/chess_piece/Cannons.valuation')
+f(17,38,2,2,'com/lkn/chess/bean/chess_piece/Cannons.calcHollow',2,0,0)
+f(18,38,2,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.findKingPositionByName',2,0,0)
+f(16,40,1,1,'com/lkn/chess/bean/chess_piece/Elephants.valuation')
+f(17,40,1,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',1,0,0)
+f(18,40,1,2,'java/util/Arrays.sort',1,0,0)
+f(16,41,1,1,'com/lkn/chess/bean/chess_piece/Pawns.valuation')
+f(16,42,1,3,'vtable stub')
+f(15,43,2124,1,'com/lkn/chess/GamePlayHigh.think')
+f(16,44,26,1,'com/lkn/chess/GamePlayHigh.computeChessValue')
+f(17,53,8,1,'com/lkn/chess/bean/ChessBoard.genericNextStepPositionMap',1,0,0)
+f(18,54,1,1,'com/lkn/chess/bean/chess_piece/Cannons.getReachablePositions')
+f(19,54,1,1,'com/lkn/chess/bean/chess_piece/Cannons.addAllCase')
+f(20,54,1,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.recordReachablePosition',1,0,0)
+f(18,55,1,1,'com/lkn/chess/bean/chess_piece/Elephants.findReachablePositions')
+f(18,56,1,1,'com/lkn/chess/bean/chess_piece/Elephants.getReachablePositions')
+f(19,56,1,1,'com/lkn/chess/bean/chess_piece/Elephants.findReachablePositions')
+f(18,57,1,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(18,58,2,1,'com/lkn/chess/bean/chess_piece/Pawns.getReachablePositions')
+f(19,58,2,1,'com/lkn/chess/bean/chess_piece/Pawns.findReachablePositions')
+f(20,59,1,2,'com/lkn/chess/bean/chess_piece/Pawns.tryReach',1,0,0)
+f(18,60,1,1,'com/lkn/chess/bean/chess_piece/Rooks.getReachablePositions')
+f(17,61,1,1,'com/lkn/chess/bean/chess_piece/Cannons.valuation')
+f(18,61,1,1,'com/lkn/chess/bean/chess_piece/Cannons.calcHollow')
+f(19,61,1,1,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.findKingPositionByName')
+f(20,61,1,1,'com/lkn/chess/bean/chess_piece/King.type')
+f(17,62,1,1,'com/lkn/chess/bean/chess_piece/Elephants.valuation')
+f(17,63,2,1,'com/lkn/chess/bean/chess_piece/Horse.valuation')
+f(18,63,2,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(17,65,1,1,'com/lkn/chess/bean/chess_piece/Mandarins.valuation')
+f(18,65,1,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',1,0,0)
+f(19,65,1,2,'java/util/Arrays.sort',1,0,0)
+f(17,66,4,1,'com/lkn/chess/bean/chess_piece/Rooks.valuation')
+f(18,66,4,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',4,0,0)
+f(19,66,4,2,'java/util/Arrays.sort',4,0,0)
+f(16,70,2095,1,'com/lkn/chess/GamePlayHigh.think')
+f(17,71,30,1,'com/lkn/chess/GamePlayHigh.computeChessValue')
+f(18,84,13,1,'com/lkn/chess/bean/ChessBoard.genericNextStepPositionMap',4,0,0)
+f(19,88,2,1,'com/lkn/chess/bean/chess_piece/Cannons.getReachablePositions')
+f(20,88,2,1,'com/lkn/chess/bean/chess_piece/Cannons.addAllCase')
+f(21,88,2,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.recordReachablePosition',2,0,0)
+f(19,90,1,1,'com/lkn/chess/bean/chess_piece/Elephants.getReachablePositions')
+f(20,90,1,1,'com/lkn/chess/bean/chess_piece/Elephants.findReachablePositions')
+f(19,91,2,1,'com/lkn/chess/bean/chess_piece/Mandarins.getReachablePositions')
+f(20,91,2,2,'com/lkn/chess/bean/chess_piece/Mandarins.findReachablePositions',2,0,0)
+f(19,93,2,1,'com/lkn/chess/bean/chess_piece/Pawns.getReachablePositions')
+f(20,94,1,1,'com/lkn/chess/bean/chess_piece/Pawns.findReachablePositions')
+f(19,95,2,1,'com/lkn/chess/bean/chess_piece/Rooks.getReachablePositions')
+f(20,96,1,1,'com/lkn/chess/bean/chess_piece/Rooks.findReachablePositions')
+f(18,97,1,1,'com/lkn/chess/bean/chess_piece/Cannons.valuation')
+f(19,97,1,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',1,0,0)
+f(20,97,1,2,'java/util/Arrays.sort',1,0,0)
+f(18,98,1,1,'com/lkn/chess/bean/chess_piece/Horse.valuation')
+f(19,98,1,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(18,99,1,1,'com/lkn/chess/bean/chess_piece/Rooks.valuation')
+f(19,99,1,1,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue')
+f(20,99,1,1,'java/util/Arrays.sort')
+f(21,99,1,1,'java/util/DualPivotQuicksort.sort')
+f(22,99,1,1,'java/util/DualPivotQuicksort.sort')
+f(18,100,1,3,'vtable stub')
+f(17,101,2064,1,'com/lkn/chess/GamePlayHigh.think')
+f(18,104,76,1,'com/lkn/chess/GamePlayHigh.computeChessValue')
+f(19,115,44,2,'com/lkn/chess/bean/ChessBoard.genericNextStepPositionMap',24,0,0)
+f(20,136,5,1,'com/lkn/chess/bean/chess_piece/Cannons.getReachablePositions')
+f(21,137,4,1,'com/lkn/chess/bean/chess_piece/Cannons.addAllCase')
+f(22,137,4,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.recordReachablePosition',4,0,0)
+f(20,141,1,1,'com/lkn/chess/bean/chess_piece/Elephants.getReachablePositions')
+f(20,142,3,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(20,145,1,1,'com/lkn/chess/bean/chess_piece/King.getReachablePositions')
+f(21,145,1,2,'com/lkn/chess/bean/chess_piece/King.findReachablePositions',1,0,0)
+f(22,145,1,2,'com/lkn/chess/bean/chess_piece/King.tryReachToEnemyKing',1,0,0)
+f(20,146,4,1,'com/lkn/chess/bean/chess_piece/Mandarins.getReachablePositions')
+f(21,146,4,2,'com/lkn/chess/bean/chess_piece/Mandarins.findReachablePositions',4,0,0)
+f(20,150,1,1,'com/lkn/chess/bean/chess_piece/Pawns.getReachablePositions')
+f(20,151,5,1,'com/lkn/chess/bean/chess_piece/Rooks.getReachablePositions')
+f(21,152,4,1,'com/lkn/chess/bean/chess_piece/Rooks.findReachablePositions')
+f(20,156,3,3,'vtable stub')
+f(19,159,2,1,'com/lkn/chess/bean/chess_piece/Cannons.valuation')
+f(20,159,2,2,'com/lkn/chess/bean/chess_piece/Cannons.calcHollow',2,0,0)
+f(21,159,2,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.findKingPositionByName',2,0,0)
+f(19,161,1,1,'com/lkn/chess/bean/chess_piece/Elephants.valuation')
+f(20,161,1,1,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue')
+f(21,161,1,1,'java/util/Arrays.sort')
+f(22,161,1,1,'java/util/DualPivotQuicksort.sort')
+f(23,161,1,1,'java/util/DualPivotQuicksort.sort')
+f(19,162,6,1,'com/lkn/chess/bean/chess_piece/Horse.valuation')
+f(20,165,3,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(19,168,1,1,'com/lkn/chess/bean/chess_piece/King.valuation')
+f(19,169,2,1,'com/lkn/chess/bean/chess_piece/Mandarins.valuation')
+f(20,170,1,1,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue')
+f(21,170,1,1,'java/util/Arrays.sort')
+f(22,170,1,1,'java/util/DualPivotQuicksort.sort')
+f(23,170,1,1,'java/util/DualPivotQuicksort.sort')
+f(19,171,3,1,'com/lkn/chess/bean/chess_piece/Pawns.valuation')
+f(20,172,2,1,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue')
+f(21,172,2,1,'java/util/Arrays.sort')
+f(22,172,2,1,'java/util/DualPivotQuicksort.sort')
+f(23,173,1,1,'java/util/DualPivotQuicksort.sort')
+f(19,174,6,1,'com/lkn/chess/bean/chess_piece/Rooks.valuation')
+f(20,177,3,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',3,0,0)
+f(21,177,3,2,'java/util/Arrays.sort',3,0,0)
+f(18,180,1983,1,'com/lkn/chess/GamePlayHigh.think')
+f(19,182,70,1,'com/lkn/chess/GamePlayHigh.computeChessValue')
+f(20,199,33,1,'com/lkn/chess/bean/ChessBoard.genericNextStepPositionMap',9,0,0)
+f(21,208,8,1,'com/lkn/chess/bean/chess_piece/Cannons.getReachablePositions')
+f(22,211,5,1,'com/lkn/chess/bean/chess_piece/Cannons.addAllCase')
+f(23,211,5,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.recordReachablePosition',5,0,0)
+f(21,216,4,1,'com/lkn/chess/bean/chess_piece/Elephants.getReachablePositions')
+f(22,218,2,1,'com/lkn/chess/bean/chess_piece/Elephants.findReachablePositions')
+f(21,220,5,1,'com/lkn/chess/bean/chess_piece/King.getReachablePositions')
+f(22,220,5,2,'com/lkn/chess/bean/chess_piece/King.findReachablePositions',5,0,0)
+f(23,220,5,2,'com/lkn/chess/bean/chess_piece/King.tryReachToEnemyKing',5,0,0)
+f(21,225,1,1,'com/lkn/chess/bean/chess_piece/Mandarins.getReachablePositions')
+f(22,225,1,2,'com/lkn/chess/bean/chess_piece/Mandarins.findReachablePositions',1,0,0)
+f(21,226,2,1,'com/lkn/chess/bean/chess_piece/Pawns.getReachablePositions')
+f(22,227,1,1,'com/lkn/chess/bean/chess_piece/Pawns.findReachablePositions')
+f(23,227,1,2,'com/lkn/chess/bean/chess_piece/Pawns.tryReach',1,0,0)
+f(21,228,4,1,'com/lkn/chess/bean/chess_piece/Rooks.getReachablePositions')
+f(22,228,4,1,'com/lkn/chess/bean/chess_piece/Rooks.findReachablePositions')
+f(20,232,1,1,'com/lkn/chess/bean/chess_piece/Cannons.valuation')
+f(21,232,1,1,'com/lkn/chess/bean/chess_piece/Cannons.calcHollow')
+f(22,232,1,1,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.findKingPositionByName')
+f(23,232,1,1,'com/lkn/chess/bean/chess_piece/King.type')
+f(20,233,1,1,'com/lkn/chess/bean/chess_piece/Elephants.valuation')
+f(21,233,1,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',1,0,0)
+f(22,233,1,2,'java/util/Arrays.sort',1,0,0)
+f(20,234,5,1,'com/lkn/chess/bean/chess_piece/Horse.valuation')
+f(21,235,4,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(20,239,2,1,'com/lkn/chess/bean/chess_piece/Mandarins.valuation')
+f(21,239,2,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',2,0,0)
+f(22,239,2,2,'java/util/Arrays.sort',2,0,0)
+f(20,241,3,1,'com/lkn/chess/bean/chess_piece/Pawns.valuation')
+f(21,243,1,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',1,0,0)
+f(22,243,1,2,'java/util/Arrays.sort',1,0,0)
+f(20,244,7,1,'com/lkn/chess/bean/chess_piece/Rooks.valuation')
+f(21,244,7,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',5,0,0)
+f(22,244,7,2,'java/util/Arrays.sort',5,0,0)
+f(23,249,2,1,'java/util/DualPivotQuicksort.sort')
+f(20,251,1,3,'vtable stub')
+f(19,252,1906,1,'com/lkn/chess/GamePlayHigh.think')
+f(20,255,137,1,'com/lkn/chess/GamePlayHigh.computeChessValue')
+f(21,287,64,2,'com/lkn/chess/bean/ChessBoard.genericNextStepPositionMap',25,0,0)
+f(22,307,11,1,'com/lkn/chess/bean/chess_piece/Cannons.getReachablePositions')
+f(23,307,11,1,'com/lkn/chess/bean/chess_piece/Cannons.addAllCase')
+f(24,307,11,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.recordReachablePosition',11,0,0)
+f(22,318,5,1,'com/lkn/chess/bean/chess_piece/Elephants.getReachablePositions')
+f(23,321,2,1,'com/lkn/chess/bean/chess_piece/Elephants.findReachablePositions')
+f(22,323,8,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(22,331,3,1,'com/lkn/chess/bean/chess_piece/King.getReachablePositions')
+f(23,331,3,2,'com/lkn/chess/bean/chess_piece/King.findReachablePositions',3,0,0)
+f(24,331,3,2,'com/lkn/chess/bean/chess_piece/King.tryReachToEnemyKing',3,0,0)
+f(22,334,2,1,'com/lkn/chess/bean/chess_piece/Mandarins.getReachablePositions')
+f(23,334,2,2,'com/lkn/chess/bean/chess_piece/Mandarins.findReachablePositions',2,0,0)
+f(22,336,3,1,'com/lkn/chess/bean/chess_piece/Pawns.getReachablePositions')
+f(23,337,2,1,'com/lkn/chess/bean/chess_piece/Pawns.findReachablePositions')
+f(24,337,2,2,'com/lkn/chess/bean/chess_piece/Pawns.tryReach',2,0,0)
+f(22,339,7,1,'com/lkn/chess/bean/chess_piece/Rooks.getReachablePositions')
+f(23,343,3,1,'com/lkn/chess/bean/chess_piece/Rooks.findReachablePositions')
+f(22,346,5,3,'vtable stub')
+f(21,351,3,1,'com/lkn/chess/bean/chess_piece/Cannons.valuation')
+f(22,351,3,2,'com/lkn/chess/bean/chess_piece/Cannons.calcHollow',3,0,0)
+f(23,351,3,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.findKingPositionByName',3,0,0)
+f(24,353,1,3,'vtable stub')
+f(21,354,2,1,'com/lkn/chess/bean/chess_piece/Elephants.valuation')
+f(22,355,1,1,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue')
+f(23,355,1,1,'java/util/Arrays.sort')
+f(24,355,1,1,'java/util/DualPivotQuicksort.sort')
+f(21,356,7,1,'com/lkn/chess/bean/chess_piece/Horse.valuation')
+f(22,358,1,1,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue')
+f(23,358,1,1,'java/util/Arrays.sort')
+f(24,358,1,1,'java/util/DualPivotQuicksort.sort')
+f(22,359,4,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(21,363,1,1,'com/lkn/chess/bean/chess_piece/King.valuation')
+f(21,364,4,1,'com/lkn/chess/bean/chess_piece/Mandarins.valuation')
+f(22,366,2,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',1,0,0)
+f(23,366,2,2,'java/util/Arrays.sort',1,0,0)
+f(24,367,1,1,'java/util/DualPivotQuicksort.sort')
+f(25,367,1,1,'java/util/DualPivotQuicksort.sort')
+f(21,368,6,1,'com/lkn/chess/bean/chess_piece/Pawns.valuation')
+f(22,370,4,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',3,0,0)
+f(23,370,4,2,'java/util/Arrays.sort',3,0,0)
+f(24,373,1,1,'java/util/DualPivotQuicksort.sort')
+f(21,374,13,1,'com/lkn/chess/bean/chess_piece/Rooks.valuation')
+f(22,378,9,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',8,0,0)
+f(23,378,9,2,'java/util/Arrays.sort',8,0,0)
+f(24,386,1,1,'java/util/DualPivotQuicksort.sort')
+f(25,386,1,1,'java/util/DualPivotQuicksort.sort')
+f(21,387,5,3,'vtable stub')
+f(20,392,1760,1,'com/lkn/chess/GamePlayHigh.think')
+f(21,397,140,1,'com/lkn/chess/GamePlayHigh.computeChessValue')
+f(22,431,55,2,'com/lkn/chess/bean/ChessBoard.genericNextStepPositionMap',19,0,0)
+f(23,449,7,1,'com/lkn/chess/bean/chess_piece/Cannons.getReachablePositions')
+f(24,449,7,1,'com/lkn/chess/bean/chess_piece/Cannons.addAllCase')
+f(25,449,7,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.recordReachablePosition',7,0,0)
+f(23,456,6,1,'com/lkn/chess/bean/chess_piece/Elephants.getReachablePositions')
+f(24,457,5,1,'com/lkn/chess/bean/chess_piece/Elephants.findReachablePositions')
+f(23,462,3,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(23,465,2,1,'com/lkn/chess/bean/chess_piece/King.getReachablePositions')
+f(24,465,2,2,'com/lkn/chess/bean/chess_piece/King.findReachablePositions',2,0,0)
+f(25,465,2,2,'com/lkn/chess/bean/chess_piece/King.tryReachToEnemyKing',2,0,0)
+f(23,467,1,1,'com/lkn/chess/bean/chess_piece/Mandarins.getReachablePositions')
+f(23,468,6,1,'com/lkn/chess/bean/chess_piece/Pawns.getReachablePositions')
+f(24,473,1,1,'com/lkn/chess/bean/chess_piece/Pawns.findReachablePositions')
+f(23,474,11,1,'com/lkn/chess/bean/chess_piece/Rooks.getReachablePositions')
+f(24,476,9,1,'com/lkn/chess/bean/chess_piece/Rooks.findReachablePositions')
+f(23,485,1,3,'vtable stub')
+f(22,486,7,1,'com/lkn/chess/bean/chess_piece/Cannons.valuation')
+f(23,487,2,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',1,0,0)
+f(24,487,2,2,'java/util/Arrays.sort',1,0,0)
+f(25,488,1,1,'java/util/DualPivotQuicksort.sort')
+f(23,489,4,2,'com/lkn/chess/bean/chess_piece/Cannons.calcHollow',3,0,0)
+f(24,489,4,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.findKingPositionByName',3,0,0)
+f(25,492,1,1,'com/lkn/chess/bean/chess_piece/Mandarins.type')
+f(22,493,3,1,'com/lkn/chess/bean/chess_piece/Elephants.valuation')
+f(23,494,2,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',2,0,0)
+f(24,494,2,2,'java/util/Arrays.sort',2,0,0)
+f(22,496,11,1,'com/lkn/chess/bean/chess_piece/Horse.valuation')
+f(23,498,1,1,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue')
+f(24,498,1,1,'java/util/Arrays.sort')
+f(25,498,1,1,'java/util/DualPivotQuicksort.sort')
+f(23,499,8,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(22,507,2,1,'com/lkn/chess/bean/chess_piece/King.valuation')
+f(22,509,7,1,'com/lkn/chess/bean/chess_piece/Mandarins.valuation')
+f(23,512,4,1,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',1,0,0)
+f(24,512,4,1,'java/util/Arrays.sort',1,0,0)
+f(25,513,3,1,'java/util/DualPivotQuicksort.sort')
+f(26,514,2,1,'java/util/DualPivotQuicksort.sort')
+f(22,516,5,1,'com/lkn/chess/bean/chess_piece/Pawns.valuation')
+f(23,517,4,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',2,0,0)
+f(24,517,4,2,'java/util/Arrays.sort',2,0,0)
+f(25,519,2,1,'java/util/DualPivotQuicksort.sort')
+f(26,520,1,1,'java/util/DualPivotQuicksort.sort')
+f(22,521,14,1,'com/lkn/chess/bean/chess_piece/Rooks.valuation')
+f(23,527,8,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',8,0,0)
+f(24,527,8,2,'java/util/Arrays.sort',8,0,0)
+f(22,535,2,3,'vtable stub')
+f(21,537,1606,1,'com/lkn/chess/GamePlayHigh.think')
+f(22,544,208,1,'com/lkn/chess/GamePlayHigh.computeChessValue')
+f(23,596,89,2,'com/lkn/chess/bean/ChessBoard.genericNextStepPositionMap',48,0,0)
+f(24,642,13,1,'com/lkn/chess/bean/chess_piece/Cannons.getReachablePositions')
+f(25,645,10,1,'com/lkn/chess/bean/chess_piece/Cannons.addAllCase')
+f(26,645,10,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.recordReachablePosition',10,0,0)
+f(24,655,1,1,'com/lkn/chess/bean/chess_piece/Elephants.getReachablePositions')
+f(25,655,1,1,'com/lkn/chess/bean/chess_piece/Elephants.findReachablePositions')
+f(24,656,5,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(24,661,5,1,'com/lkn/chess/bean/chess_piece/King.getReachablePositions')
+f(25,662,4,2,'com/lkn/chess/bean/chess_piece/King.findReachablePositions',4,0,0)
+f(26,662,4,2,'com/lkn/chess/bean/chess_piece/King.tryReachToEnemyKing',4,0,0)
+f(24,666,8,1,'com/lkn/chess/bean/chess_piece/Pawns.getReachablePositions')
+f(25,668,6,1,'com/lkn/chess/bean/chess_piece/Pawns.findReachablePositions')
+f(26,668,6,2,'com/lkn/chess/bean/chess_piece/Pawns.tryReach',6,0,0)
+f(24,674,9,1,'com/lkn/chess/bean/chess_piece/Rooks.getReachablePositions')
+f(25,676,7,1,'com/lkn/chess/bean/chess_piece/Rooks.findReachablePositions')
+f(24,683,2,3,'vtable stub')
+f(23,685,11,1,'com/lkn/chess/bean/chess_piece/Cannons.valuation')
+f(24,687,9,2,'com/lkn/chess/bean/chess_piece/Cannons.calcHollow',7,0,0)
+f(25,687,9,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.findKingPositionByName',7,0,0)
+f(26,693,1,1,'com/lkn/chess/bean/chess_piece/Cannons.type')
+f(26,694,1,1,'com/lkn/chess/bean/chess_piece/King.type')
+f(26,695,1,3,'vtable stub')
+f(23,696,4,1,'com/lkn/chess/bean/chess_piece/Elephants.valuation')
+f(24,696,4,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',4,0,0)
+f(25,696,4,2,'java/util/Arrays.sort',4,0,0)
+f(23,700,16,1,'com/lkn/chess/bean/chess_piece/Horse.valuation')
+f(24,703,2,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',1,0,0)
+f(25,703,2,2,'java/util/Arrays.sort',1,0,0)
+f(26,704,1,1,'java/util/DualPivotQuicksort.sort')
+f(24,705,11,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(23,716,2,1,'com/lkn/chess/bean/chess_piece/King.valuation')
+f(23,718,5,1,'com/lkn/chess/bean/chess_piece/Mandarins.valuation')
+f(24,721,2,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',1,0,0)
+f(25,721,2,2,'java/util/Arrays.sort',1,0,0)
+f(26,722,1,1,'java/util/DualPivotQuicksort.sort')
+f(23,723,8,1,'com/lkn/chess/bean/chess_piece/Pawns.valuation')
+f(24,725,6,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',3,0,0)
+f(25,725,6,2,'java/util/Arrays.sort',3,0,0)
+f(26,728,3,1,'java/util/DualPivotQuicksort.sort')
+f(27,729,2,1,'java/util/DualPivotQuicksort.sort')
+f(23,731,18,1,'com/lkn/chess/bean/chess_piece/Rooks.valuation')
+f(24,735,14,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',12,0,0)
+f(25,735,14,2,'java/util/Arrays.sort',12,0,0)
+f(26,747,2,1,'java/util/DualPivotQuicksort.sort')
+f(23,749,3,3,'vtable stub')
+f(22,752,1380,1,'com/lkn/chess/GamePlayHigh.think')
+f(23,754,151,1,'com/lkn/chess/GamePlayHigh.computeChessValue')
+f(24,794,76,2,'com/lkn/chess/bean/ChessBoard.genericNextStepPositionMap',36,0,0)
+f(25,826,6,1,'com/lkn/chess/bean/chess_piece/Cannons.getReachablePositions')
+f(26,828,4,1,'com/lkn/chess/bean/chess_piece/Cannons.addAllCase')
+f(27,828,4,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.recordReachablePosition',4,0,0)
+f(25,832,8,1,'com/lkn/chess/bean/chess_piece/Elephants.getReachablePositions')
+f(26,833,7,1,'com/lkn/chess/bean/chess_piece/Elephants.findReachablePositions')
+f(25,840,6,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(25,846,3,1,'com/lkn/chess/bean/chess_piece/King.getReachablePositions')
+f(26,846,3,2,'com/lkn/chess/bean/chess_piece/King.findReachablePositions',3,0,0)
+f(27,846,3,2,'com/lkn/chess/bean/chess_piece/King.tryReachToEnemyKing',3,0,0)
+f(25,849,2,1,'com/lkn/chess/bean/chess_piece/Mandarins.getReachablePositions')
+f(26,850,1,2,'com/lkn/chess/bean/chess_piece/Mandarins.findReachablePositions',1,0,0)
+f(25,851,5,1,'com/lkn/chess/bean/chess_piece/Pawns.getReachablePositions')
+f(25,856,10,1,'com/lkn/chess/bean/chess_piece/Rooks.getReachablePositions')
+f(26,860,6,1,'com/lkn/chess/bean/chess_piece/Rooks.findReachablePositions')
+f(25,866,4,3,'vtable stub')
+f(24,870,3,1,'com/lkn/chess/bean/chess_piece/Cannons.valuation')
+f(25,870,3,2,'com/lkn/chess/bean/chess_piece/Cannons.calcHollow',3,0,0)
+f(26,870,3,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.findKingPositionByName',3,0,0)
+f(24,873,2,1,'com/lkn/chess/bean/chess_piece/Elephants.valuation')
+f(25,874,1,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',1,0,0)
+f(26,874,1,2,'java/util/Arrays.sort',1,0,0)
+f(24,875,6,1,'com/lkn/chess/bean/chess_piece/Horse.valuation')
+f(25,878,3,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(24,881,3,1,'com/lkn/chess/bean/chess_piece/King.valuation')
+f(24,884,3,1,'com/lkn/chess/bean/chess_piece/Pawns.valuation')
+f(25,885,2,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',2,0,0)
+f(26,885,2,2,'java/util/Arrays.sort',2,0,0)
+f(24,887,14,1,'com/lkn/chess/bean/chess_piece/Rooks.valuation')
+f(25,888,13,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',13,0,0)
+f(26,888,13,2,'java/util/Arrays.sort',13,0,0)
+f(24,901,4,3,'vtable stub')
+f(23,905,1219,1,'com/lkn/chess/GamePlayHigh.think')
+f(24,918,315,1,'com/lkn/chess/GamePlayHigh.computeChessValue')
+f(25,1006,146,2,'com/lkn/chess/bean/ChessBoard.genericNextStepPositionMap',76,0,0)
+f(26,1072,22,1,'com/lkn/chess/bean/chess_piece/Cannons.getReachablePositions')
+f(27,1073,21,1,'com/lkn/chess/bean/chess_piece/Cannons.addAllCase')
+f(28,1073,21,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.recordReachablePosition',21,0,0)
+f(26,1094,8,1,'com/lkn/chess/bean/chess_piece/Elephants.getReachablePositions')
+f(27,1098,4,1,'com/lkn/chess/bean/chess_piece/Elephants.findReachablePositions')
+f(26,1102,5,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(26,1107,8,1,'com/lkn/chess/bean/chess_piece/King.getReachablePositions')
+f(27,1108,7,2,'com/lkn/chess/bean/chess_piece/King.findReachablePositions',7,0,0)
+f(28,1108,7,2,'com/lkn/chess/bean/chess_piece/King.tryReachToEnemyKing',7,0,0)
+f(26,1115,4,1,'com/lkn/chess/bean/chess_piece/Mandarins.getReachablePositions')
+f(27,1115,4,2,'com/lkn/chess/bean/chess_piece/Mandarins.findReachablePositions',4,0,0)
+f(26,1119,7,1,'com/lkn/chess/bean/chess_piece/Pawns.getReachablePositions')
+f(27,1124,2,1,'com/lkn/chess/bean/chess_piece/Pawns.findReachablePositions')
+f(28,1124,2,2,'com/lkn/chess/bean/chess_piece/Pawns.tryReach',2,0,0)
+f(26,1126,16,1,'com/lkn/chess/bean/chess_piece/Rooks.getReachablePositions')
+f(27,1130,12,1,'com/lkn/chess/bean/chess_piece/Rooks.findReachablePositions')
+f(26,1142,10,3,'vtable stub')
+f(25,1152,14,1,'com/lkn/chess/bean/chess_piece/Cannons.valuation')
+f(26,1152,3,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',3,0,0)
+f(27,1152,3,2,'java/util/Arrays.sort',3,0,0)
+f(26,1155,11,2,'com/lkn/chess/bean/chess_piece/Cannons.calcHollow',10,0,0)
+f(27,1155,11,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.findKingPositionByName',10,0,0)
+f(28,1163,1,1,'com/lkn/chess/bean/chess_piece/Mandarins.type')
+f(28,1164,2,3,'vtable stub')
+f(25,1166,7,1,'com/lkn/chess/bean/chess_piece/Elephants.valuation')
+f(26,1169,4,1,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',1,0,0)
+f(27,1169,4,1,'java/util/Arrays.sort',1,0,0)
+f(28,1170,3,1,'java/util/DualPivotQuicksort.sort')
+f(29,1170,3,1,'java/util/DualPivotQuicksort.sort')
+f(25,1173,10,1,'com/lkn/chess/bean/chess_piece/Horse.valuation')
+f(26,1174,2,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',2,0,0)
+f(27,1174,2,2,'java/util/Arrays.sort',2,0,0)
+f(26,1176,7,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(25,1183,6,1,'com/lkn/chess/bean/chess_piece/Mandarins.valuation')
+f(26,1183,6,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',4,0,0)
+f(27,1183,6,2,'java/util/Arrays.sort',4,0,0)
+f(28,1187,2,1,'java/util/DualPivotQuicksort.sort')
+f(25,1189,10,1,'com/lkn/chess/bean/chess_piece/Pawns.valuation')
+f(26,1193,6,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',2,0,0)
+f(27,1193,6,2,'java/util/Arrays.sort',2,0,0)
+f(28,1195,4,1,'java/util/DualPivotQuicksort.sort')
+f(25,1199,28,1,'com/lkn/chess/bean/chess_piece/Rooks.valuation')
+f(26,1205,22,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',20,0,0)
+f(27,1205,22,2,'java/util/Arrays.sort',20,0,0)
+f(28,1225,2,1,'java/util/DualPivotQuicksort.sort')
+f(25,1227,6,3,'vtable stub')
+f(24,1233,884,1,'com/lkn/chess/GamePlayHigh.think')
+f(25,1245,176,1,'com/lkn/chess/GamePlayHigh.computeChessValue')
+f(26,1282,89,2,'com/lkn/chess/bean/ChessBoard.genericNextStepPositionMap',42,0,0)
+f(27,1320,8,1,'com/lkn/chess/bean/chess_piece/Cannons.getReachablePositions')
+f(28,1321,7,1,'com/lkn/chess/bean/chess_piece/Cannons.addAllCase')
+f(29,1321,7,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.recordReachablePosition',7,0,0)
+f(27,1328,7,1,'com/lkn/chess/bean/chess_piece/Elephants.getReachablePositions')
+f(28,1329,6,1,'com/lkn/chess/bean/chess_piece/Elephants.findReachablePositions')
+f(27,1335,5,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(27,1340,13,1,'com/lkn/chess/bean/chess_piece/King.getReachablePositions')
+f(28,1341,12,2,'com/lkn/chess/bean/chess_piece/King.findReachablePositions',12,0,0)
+f(29,1341,12,2,'com/lkn/chess/bean/chess_piece/King.tryReachToEnemyKing',12,0,0)
+f(27,1353,2,1,'com/lkn/chess/bean/chess_piece/Mandarins.getReachablePositions')
+f(28,1353,2,2,'com/lkn/chess/bean/chess_piece/Mandarins.findReachablePositions',2,0,0)
+f(27,1355,5,1,'com/lkn/chess/bean/chess_piece/Pawns.getReachablePositions')
+f(28,1358,2,1,'com/lkn/chess/bean/chess_piece/Pawns.findReachablePositions')
+f(29,1358,2,2,'com/lkn/chess/bean/chess_piece/Pawns.tryReach',2,0,0)
+f(27,1360,7,1,'com/lkn/chess/bean/chess_piece/Rooks.getReachablePositions')
+f(28,1361,6,1,'com/lkn/chess/bean/chess_piece/Rooks.findReachablePositions')
+f(27,1367,4,3,'vtable stub')
+f(26,1371,6,1,'com/lkn/chess/bean/chess_piece/Cannons.valuation')
+f(27,1372,2,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',1,0,0)
+f(28,1372,2,2,'java/util/Arrays.sort',1,0,0)
+f(29,1373,1,1,'java/util/DualPivotQuicksort.sort')
+f(30,1373,1,1,'java/util/DualPivotQuicksort.sort')
+f(27,1374,3,2,'com/lkn/chess/bean/chess_piece/Cannons.calcHollow',3,0,0)
+f(28,1374,3,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.findKingPositionByName',3,0,0)
+f(26,1377,3,1,'com/lkn/chess/bean/chess_piece/Elephants.valuation')
+f(27,1378,2,1,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue')
+f(28,1378,2,1,'java/util/Arrays.sort')
+f(29,1378,2,1,'java/util/DualPivotQuicksort.sort')
+f(30,1379,1,1,'java/util/DualPivotQuicksort.sort')
+f(26,1380,12,1,'com/lkn/chess/bean/chess_piece/Horse.valuation')
+f(27,1382,3,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',3,0,0)
+f(28,1382,3,2,'java/util/Arrays.sort',3,0,0)
+f(27,1385,7,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(26,1392,1,1,'com/lkn/chess/bean/chess_piece/King.valuation')
+f(26,1393,4,1,'com/lkn/chess/bean/chess_piece/Mandarins.valuation')
+f(27,1394,3,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',1,0,0)
+f(28,1394,3,2,'java/util/Arrays.sort',1,0,0)
+f(29,1395,2,1,'java/util/DualPivotQuicksort.sort')
+f(30,1396,1,1,'java/util/DualPivotQuicksort.sort')
+f(26,1397,2,1,'com/lkn/chess/bean/chess_piece/Pawns.valuation')
+f(26,1399,19,1,'com/lkn/chess/bean/chess_piece/Rooks.valuation')
+f(27,1408,10,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',10,0,0)
+f(28,1408,10,2,'java/util/Arrays.sort',10,0,0)
+f(26,1418,3,3,'vtable stub')
+f(25,1421,677,1,'com/lkn/chess/GamePlayHigh.think')
+f(26,1433,226,1,'com/lkn/chess/GamePlayHigh.computeChessValue')
+f(27,1489,115,2,'com/lkn/chess/bean/ChessBoard.genericNextStepPositionMap',54,0,0)
+f(28,1539,18,1,'com/lkn/chess/bean/chess_piece/Cannons.getReachablePositions')
+f(29,1543,14,1,'com/lkn/chess/bean/chess_piece/Cannons.addAllCase')
+f(30,1543,14,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.recordReachablePosition',14,0,0)
+f(28,1557,3,1,'com/lkn/chess/bean/chess_piece/Elephants.getReachablePositions')
+f(29,1558,2,1,'com/lkn/chess/bean/chess_piece/Elephants.findReachablePositions')
+f(28,1560,7,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(28,1567,7,1,'com/lkn/chess/bean/chess_piece/King.getReachablePositions')
+f(29,1567,7,2,'com/lkn/chess/bean/chess_piece/King.findReachablePositions',7,0,0)
+f(30,1567,7,2,'com/lkn/chess/bean/chess_piece/King.tryReachToEnemyKing',7,0,0)
+f(28,1574,10,1,'com/lkn/chess/bean/chess_piece/Pawns.getReachablePositions')
+f(29,1580,4,1,'com/lkn/chess/bean/chess_piece/Pawns.findReachablePositions')
+f(30,1580,4,2,'com/lkn/chess/bean/chess_piece/Pawns.tryReach',4,0,0)
+f(28,1584,16,1,'com/lkn/chess/bean/chess_piece/Rooks.getReachablePositions')
+f(29,1590,10,1,'com/lkn/chess/bean/chess_piece/Rooks.findReachablePositions')
+f(28,1600,4,3,'vtable stub')
+f(27,1604,9,1,'com/lkn/chess/bean/chess_piece/Cannons.valuation')
+f(28,1605,3,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',2,0,0)
+f(29,1605,3,2,'java/util/Arrays.sort',2,0,0)
+f(30,1607,1,1,'java/util/DualPivotQuicksort.sort')
+f(31,1607,1,1,'java/util/DualPivotQuicksort.sort')
+f(28,1608,5,2,'com/lkn/chess/bean/chess_piece/Cannons.calcHollow',5,0,0)
+f(29,1608,5,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.findKingPositionByName',5,0,0)
+f(27,1613,3,1,'com/lkn/chess/bean/chess_piece/Elephants.valuation')
+f(28,1615,1,1,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue')
+f(29,1615,1,1,'java/util/Arrays.sort')
+f(30,1615,1,1,'java/util/DualPivotQuicksort.sort')
+f(27,1616,11,1,'com/lkn/chess/bean/chess_piece/Horse.valuation')
+f(28,1617,10,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(27,1627,5,1,'com/lkn/chess/bean/chess_piece/King.valuation')
+f(27,1632,5,1,'com/lkn/chess/bean/chess_piece/Mandarins.valuation')
+f(28,1632,5,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',4,0,0)
+f(29,1632,5,2,'java/util/Arrays.sort',4,0,0)
+f(30,1636,1,1,'java/util/DualPivotQuicksort.sort')
+f(31,1636,1,1,'java/util/DualPivotQuicksort.sort')
+f(27,1637,5,1,'com/lkn/chess/bean/chess_piece/Pawns.valuation')
+f(28,1639,3,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',3,0,0)
+f(29,1639,3,2,'java/util/Arrays.sort',3,0,0)
+f(27,1642,15,1,'com/lkn/chess/bean/chess_piece/Rooks.valuation')
+f(28,1646,11,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',9,0,0)
+f(29,1646,11,2,'java/util/Arrays.sort',9,0,0)
+f(30,1655,2,1,'java/util/DualPivotQuicksort.sort')
+f(31,1656,1,1,'java/util/DualPivotQuicksort.sort')
+f(27,1657,2,3,'vtable stub')
+f(26,1659,420,1,'com/lkn/chess/GamePlayHigh.think')
+f(27,1664,116,1,'com/lkn/chess/GamePlayHigh.computeChessValue')
+f(28,1698,46,2,'com/lkn/chess/bean/ChessBoard.genericNextStepPositionMap',17,0,0)
+f(29,1713,8,1,'com/lkn/chess/bean/chess_piece/Cannons.getReachablePositions')
+f(30,1715,6,1,'com/lkn/chess/bean/chess_piece/Cannons.addAllCase')
+f(31,1715,6,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.recordReachablePosition',6,0,0)
+f(29,1721,3,1,'com/lkn/chess/bean/chess_piece/Elephants.getReachablePositions')
+f(30,1722,2,1,'com/lkn/chess/bean/chess_piece/Elephants.findReachablePositions')
+f(29,1724,5,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(29,1729,9,1,'com/lkn/chess/bean/chess_piece/King.getReachablePositions')
+f(30,1729,9,2,'com/lkn/chess/bean/chess_piece/King.findReachablePositions',9,0,0)
+f(31,1729,9,2,'com/lkn/chess/bean/chess_piece/King.tryReachToEnemyKing',9,0,0)
+f(29,1738,1,1,'com/lkn/chess/bean/chess_piece/Pawns.getReachablePositions')
+f(29,1739,3,1,'com/lkn/chess/bean/chess_piece/Rooks.getReachablePositions')
+f(30,1739,3,1,'com/lkn/chess/bean/chess_piece/Rooks.findReachablePositions')
+f(29,1742,2,3,'vtable stub')
+f(28,1744,9,1,'com/lkn/chess/bean/chess_piece/Cannons.valuation')
+f(29,1744,3,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',3,0,0)
+f(30,1744,3,2,'java/util/Arrays.sort',3,0,0)
+f(29,1747,6,2,'com/lkn/chess/bean/chess_piece/Cannons.calcHollow',5,0,0)
+f(30,1747,6,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.findKingPositionByName',5,0,0)
+f(31,1751,1,1,'com/lkn/chess/bean/chess_piece/King.type')
+f(31,1752,1,3,'vtable stub')
+f(28,1753,3,1,'com/lkn/chess/bean/chess_piece/Elephants.valuation')
+f(29,1754,2,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',1,0,0)
+f(30,1754,2,2,'java/util/Arrays.sort',1,0,0)
+f(31,1755,1,1,'java/util/DualPivotQuicksort.sort')
+f(32,1755,1,1,'java/util/DualPivotQuicksort.sort')
+f(28,1756,6,1,'com/lkn/chess/bean/chess_piece/Horse.valuation')
+f(29,1756,1,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',1,0,0)
+f(30,1756,1,2,'java/util/Arrays.sort',1,0,0)
+f(29,1757,5,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(28,1762,2,1,'com/lkn/chess/bean/chess_piece/King.valuation')
+f(28,1764,7,1,'com/lkn/chess/bean/chess_piece/Pawns.valuation')
+f(29,1769,2,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',1,0,0)
+f(30,1769,2,2,'java/util/Arrays.sort',1,0,0)
+f(31,1770,1,1,'java/util/DualPivotQuicksort.sort')
+f(32,1770,1,1,'java/util/DualPivotQuicksort.sort')
+f(28,1771,8,1,'com/lkn/chess/bean/chess_piece/Rooks.valuation')
+f(29,1774,5,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',5,0,0)
+f(30,1774,5,2,'java/util/Arrays.sort',5,0,0)
+f(28,1779,1,3,'vtable stub')
+f(27,1780,289,1,'com/lkn/chess/GamePlayHigh.think')
+f(28,1787,123,1,'com/lkn/chess/GamePlayHigh.computeChessValue')
+f(29,1815,64,2,'com/lkn/chess/bean/ChessBoard.genericNextStepPositionMap',32,0,0)
+f(30,1843,9,1,'com/lkn/chess/bean/chess_piece/Cannons.getReachablePositions')
+f(31,1844,8,1,'com/lkn/chess/bean/chess_piece/Cannons.addAllCase')
+f(32,1844,8,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.recordReachablePosition',8,0,0)
+f(30,1852,4,1,'com/lkn/chess/bean/chess_piece/Elephants.getReachablePositions')
+f(31,1855,1,1,'com/lkn/chess/bean/chess_piece/Elephants.findReachablePositions')
+f(30,1856,5,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(30,1861,4,1,'com/lkn/chess/bean/chess_piece/King.getReachablePositions')
+f(31,1861,4,2,'com/lkn/chess/bean/chess_piece/King.findReachablePositions',4,0,0)
+f(32,1861,4,2,'com/lkn/chess/bean/chess_piece/King.tryReachToEnemyKing',4,0,0)
+f(30,1865,1,1,'com/lkn/chess/bean/chess_piece/Mandarins.getReachablePositions')
+f(30,1866,4,1,'com/lkn/chess/bean/chess_piece/Pawns.getReachablePositions')
+f(31,1867,3,1,'com/lkn/chess/bean/chess_piece/Pawns.findReachablePositions')
+f(32,1867,3,2,'com/lkn/chess/bean/chess_piece/Pawns.tryReach',3,0,0)
+f(30,1870,5,1,'com/lkn/chess/bean/chess_piece/Rooks.getReachablePositions')
+f(31,1872,3,1,'com/lkn/chess/bean/chess_piece/Rooks.findReachablePositions')
+f(30,1875,4,3,'vtable stub')
+f(29,1879,6,1,'com/lkn/chess/bean/chess_piece/Cannons.valuation')
+f(30,1880,2,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',1,0,0)
+f(31,1880,2,2,'java/util/Arrays.sort',1,0,0)
+f(32,1881,1,1,'java/util/DualPivotQuicksort.sort')
+f(30,1882,3,2,'com/lkn/chess/bean/chess_piece/Cannons.calcHollow',3,0,0)
+f(31,1882,3,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.findKingPositionByName',3,0,0)
+f(29,1885,1,1,'com/lkn/chess/bean/chess_piece/Elephants.valuation')
+f(29,1886,3,1,'com/lkn/chess/bean/chess_piece/Horse.valuation')
+f(30,1887,1,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',1,0,0)
+f(31,1887,1,2,'java/util/Arrays.sort',1,0,0)
+f(30,1888,1,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(29,1889,2,1,'com/lkn/chess/bean/chess_piece/King.valuation')
+f(29,1891,3,1,'com/lkn/chess/bean/chess_piece/Mandarins.valuation')
+f(29,1894,4,1,'com/lkn/chess/bean/chess_piece/Pawns.valuation')
+f(30,1896,2,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',2,0,0)
+f(31,1896,2,2,'java/util/Arrays.sort',2,0,0)
+f(29,1898,10,1,'com/lkn/chess/bean/chess_piece/Rooks.valuation')
+f(30,1900,8,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',7,0,0)
+f(31,1900,8,2,'java/util/Arrays.sort',7,0,0)
+f(32,1907,1,1,'java/util/DualPivotQuicksort.sort')
+f(29,1908,2,3,'vtable stub')
+f(28,1910,151,1,'com/lkn/chess/GamePlayHigh.think')
+f(29,1917,53,1,'com/lkn/chess/GamePlayHigh.computeChessValue')
+f(30,1932,25,2,'com/lkn/chess/bean/ChessBoard.genericNextStepPositionMap',12,0,0)
+f(31,1942,3,1,'com/lkn/chess/bean/chess_piece/Cannons.getReachablePositions')
+f(32,1942,3,1,'com/lkn/chess/bean/chess_piece/Cannons.addAllCase')
+f(33,1942,3,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.recordReachablePosition',3,0,0)
+f(31,1945,4,1,'com/lkn/chess/bean/chess_piece/Elephants.getReachablePositions')
+f(32,1946,3,1,'com/lkn/chess/bean/chess_piece/Elephants.findReachablePositions')
+f(31,1949,2,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(31,1951,1,1,'com/lkn/chess/bean/chess_piece/King.getReachablePositions')
+f(32,1951,1,2,'com/lkn/chess/bean/chess_piece/King.findReachablePositions',1,0,0)
+f(33,1951,1,2,'com/lkn/chess/bean/chess_piece/King.tryReachToEnemyKing',1,0,0)
+f(31,1952,3,1,'com/lkn/chess/bean/chess_piece/Rooks.getReachablePositions')
+f(32,1953,2,1,'com/lkn/chess/bean/chess_piece/Rooks.findReachablePositions')
+f(31,1955,2,3,'vtable stub')
+f(30,1957,2,1,'com/lkn/chess/bean/chess_piece/Cannons.valuation')
+f(31,1957,1,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',1,0,0)
+f(32,1957,1,2,'java/util/Arrays.sort',1,0,0)
+f(31,1958,1,2,'com/lkn/chess/bean/chess_piece/Cannons.calcHollow',1,0,0)
+f(32,1958,1,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.findKingPositionByName',1,0,0)
+f(30,1959,1,1,'com/lkn/chess/bean/chess_piece/Horse.valuation')
+f(31,1959,1,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',1,0,0)
+f(32,1959,1,2,'java/util/Arrays.sort',1,0,0)
+f(30,1960,9,1,'com/lkn/chess/bean/chess_piece/Rooks.valuation')
+f(31,1961,8,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',7,0,0)
+f(32,1961,8,2,'java/util/Arrays.sort',7,0,0)
+f(33,1968,1,1,'java/util/DualPivotQuicksort.sort')
+f(30,1969,1,3,'vtable stub')
+f(29,1970,90,1,'com/lkn/chess/GamePlayHigh.think')
+f(30,1974,44,1,'com/lkn/chess/GamePlayHigh.computeChessValue')
+f(31,1987,24,2,'com/lkn/chess/bean/ChessBoard.genericNextStepPositionMap',17,0,0)
+f(32,2002,2,1,'com/lkn/chess/bean/chess_piece/Cannons.getReachablePositions')
+f(33,2002,2,1,'com/lkn/chess/bean/chess_piece/Cannons.addAllCase')
+f(34,2002,2,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.recordReachablePosition',2,0,0)
+f(32,2004,2,1,'com/lkn/chess/bean/chess_piece/Elephants.getReachablePositions')
+f(33,2004,2,1,'com/lkn/chess/bean/chess_piece/Elephants.findReachablePositions')
+f(32,2006,1,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(32,2007,2,1,'com/lkn/chess/bean/chess_piece/Rooks.getReachablePositions')
+f(33,2007,2,1,'com/lkn/chess/bean/chess_piece/Rooks.findReachablePositions')
+f(32,2009,2,3,'vtable stub')
+f(31,2011,3,1,'com/lkn/chess/bean/chess_piece/Cannons.valuation')
+f(32,2012,2,2,'com/lkn/chess/bean/chess_piece/Cannons.calcHollow',2,0,0)
+f(33,2012,2,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.findKingPositionByName',2,0,0)
+f(31,2014,1,1,'com/lkn/chess/bean/chess_piece/Elephants.valuation')
+f(31,2015,1,1,'com/lkn/chess/bean/chess_piece/King.valuation')
+f(31,2016,1,1,'com/lkn/chess/bean/chess_piece/Rooks.valuation')
+f(32,2016,1,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',1,0,0)
+f(33,2016,1,2,'java/util/Arrays.sort',1,0,0)
+f(31,2017,1,3,'vtable stub')
+f(30,2018,39,1,'com/lkn/chess/GamePlayHigh.think')
+f(31,2021,22,1,'com/lkn/chess/GamePlayHigh.computeChessValue')
+f(32,2027,12,2,'com/lkn/chess/bean/ChessBoard.genericNextStepPositionMap',6,0,0)
+f(33,2033,1,1,'com/lkn/chess/bean/chess_piece/Cannons.getReachablePositions')
+f(34,2033,1,1,'com/lkn/chess/bean/chess_piece/Cannons.addAllCase')
+f(35,2033,1,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.recordReachablePosition',1,0,0)
+f(33,2034,2,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(33,2036,1,1,'com/lkn/chess/bean/chess_piece/King.getReachablePositions')
+f(34,2036,1,2,'com/lkn/chess/bean/chess_piece/King.findReachablePositions',1,0,0)
+f(35,2036,1,2,'com/lkn/chess/bean/chess_piece/King.tryReachToEnemyKing',1,0,0)
+f(33,2037,2,1,'com/lkn/chess/bean/chess_piece/Rooks.getReachablePositions')
+f(34,2038,1,1,'com/lkn/chess/bean/chess_piece/Rooks.findReachablePositions')
+f(32,2039,1,1,'com/lkn/chess/bean/chess_piece/King.valuation')
+f(32,2040,3,1,'com/lkn/chess/bean/chess_piece/Rooks.valuation')
+f(33,2040,3,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',3,0,0)
+f(34,2040,3,2,'java/util/Arrays.sort',3,0,0)
+f(31,2043,14,1,'com/lkn/chess/GamePlayHigh.think')
+f(32,2043,10,1,'com/lkn/chess/GamePlayHigh.computeChessValue')
+f(33,2046,6,2,'com/lkn/chess/bean/ChessBoard.genericNextStepPositionMap',3,0,0)
+f(34,2049,1,1,'com/lkn/chess/bean/chess_piece/Elephants.getReachablePositions')
+f(34,2050,1,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(34,2051,1,1,'com/lkn/chess/bean/chess_piece/Pawns.getReachablePositions')
+f(35,2051,1,1,'com/lkn/chess/bean/chess_piece/Pawns.findReachablePositions')
+f(36,2051,1,2,'com/lkn/chess/bean/chess_piece/Pawns.tryReach',1,0,0)
+f(33,2052,1,1,'com/lkn/chess/bean/chess_piece/Rooks.valuation')
+f(34,2052,1,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',1,0,0)
+f(35,2052,1,2,'java/util/Arrays.sort',1,0,0)
+f(32,2053,3,1,'com/lkn/chess/GamePlayHigh.think')
+f(33,2053,3,1,'com/lkn/chess/GamePlayHigh.computeChessValue')
+f(34,2053,2,1,'com/lkn/chess/bean/ChessBoard.genericNextStepPositionMap')
+f(35,2053,1,1,'com/lkn/chess/bean/chess_piece/Cannons.getReachablePositions')
+f(36,2053,1,1,'com/lkn/chess/bean/chess_piece/Cannons.addAllCase')
+f(37,2053,1,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.recordReachablePosition',1,0,0)
+f(35,2054,1,1,'com/lkn/chess/bean/chess_piece/Pawns.getReachablePositions')
+f(36,2054,1,1,'com/lkn/chess/bean/chess_piece/Pawns.findReachablePositions')
+f(37,2054,1,2,'com/lkn/chess/bean/chess_piece/Pawns.tryReach',1,0,0)
+f(34,2055,1,1,'com/lkn/chess/bean/chess_piece/Rooks.valuation')
+f(35,2055,1,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.eatenValue',1,0,0)
+f(36,2055,1,2,'java/util/Arrays.sort',1,0,0)
+f(32,2056,1,1,'com/lkn/chess/bean/chess_piece/Cannons.getReachablePositions')
+f(33,2056,1,1,'com/lkn/chess/bean/chess_piece/Cannons.addAllCase')
+f(34,2056,1,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.recordReachablePosition',1,0,0)
+f(30,2057,1,1,'com/lkn/chess/bean/chess_piece/Cannons.getReachablePositions')
+f(31,2057,1,1,'com/lkn/chess/bean/chess_piece/Cannons.addAllCase')
+f(32,2057,1,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.recordReachablePosition',1,0,0)
+f(30,2058,1,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(30,2059,1,1,'com/lkn/chess/bean/chess_piece/Pawns.getReachablePositions')
+f(29,2060,1,1,'com/lkn/chess/bean/chess_piece/King.getReachablePositions')
+f(30,2060,1,2,'com/lkn/chess/bean/chess_piece/King.findReachablePositions',1,0,0)
+f(31,2060,1,2,'com/lkn/chess/bean/chess_piece/King.tryReachToEnemyKing',1,0,0)
+f(28,2061,4,1,'com/lkn/chess/bean/chess_piece/Cannons.getReachablePositions')
+f(29,2061,4,1,'com/lkn/chess/bean/chess_piece/Cannons.addAllCase')
+f(30,2061,4,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.recordReachablePosition',4,0,0)
+f(28,2065,1,1,'com/lkn/chess/bean/chess_piece/Elephants.getReachablePositions')
+f(29,2065,1,1,'com/lkn/chess/bean/chess_piece/Elephants.findReachablePositions')
+f(28,2066,1,1,'com/lkn/chess/bean/chess_piece/Rooks.getReachablePositions')
+f(29,2066,1,1,'com/lkn/chess/bean/chess_piece/Rooks.findReachablePositions')
+f(28,2067,1,2,'java/util/HashMap.put',1,0,0)
+f(29,2067,1,2,'java/util/HashMap.putVal',1,0,0)
+f(28,2068,1,3,'vtable stub')
+f(27,2069,2,1,'com/lkn/chess/bean/chess_piece/Cannons.getReachablePositions')
+f(28,2069,2,1,'com/lkn/chess/bean/chess_piece/Cannons.addAllCase')
+f(29,2069,2,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.recordReachablePosition',2,0,0)
+f(27,2071,1,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(27,2072,2,1,'com/lkn/chess/bean/chess_piece/King.getReachablePositions')
+f(28,2073,1,2,'com/lkn/chess/bean/chess_piece/King.findReachablePositions',1,0,0)
+f(29,2073,1,2,'com/lkn/chess/bean/chess_piece/King.tryReachToEnemyKing',1,0,0)
+f(27,2074,2,1,'com/lkn/chess/bean/chess_piece/Mandarins.getReachablePositions')
+f(28,2075,1,2,'com/lkn/chess/bean/chess_piece/Mandarins.findReachablePositions',1,0,0)
+f(27,2076,1,1,'com/lkn/chess/bean/chess_piece/Rooks.getReachablePositions')
+f(28,2076,1,1,'com/lkn/chess/bean/chess_piece/Rooks.findReachablePositions')
+f(27,2077,2,2,'java/util/HashMap.put',2,0,0)
+f(28,2077,2,2,'java/util/HashMap.putVal',2,0,0)
+f(26,2079,5,1,'com/lkn/chess/bean/chess_piece/Cannons.getReachablePositions')
+f(27,2081,3,1,'com/lkn/chess/bean/chess_piece/Cannons.addAllCase')
+f(28,2081,3,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.recordReachablePosition',3,0,0)
+f(26,2084,1,1,'com/lkn/chess/bean/chess_piece/Elephants.getReachablePositions')
+f(26,2085,4,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(26,2089,2,1,'com/lkn/chess/bean/chess_piece/King.getReachablePositions')
+f(27,2089,2,2,'com/lkn/chess/bean/chess_piece/King.findReachablePositions',2,0,0)
+f(28,2089,2,2,'com/lkn/chess/bean/chess_piece/King.tryReachToEnemyKing',2,0,0)
+f(26,2091,1,1,'com/lkn/chess/bean/chess_piece/Pawns.getReachablePositions')
+f(26,2092,4,1,'com/lkn/chess/bean/chess_piece/Rooks.getReachablePositions')
+f(27,2092,4,1,'com/lkn/chess/bean/chess_piece/Rooks.findReachablePositions')
+f(26,2096,2,2,'java/util/HashMap.put',2,0,0)
+f(27,2096,2,2,'java/util/HashMap.putVal',2,0,0)
+f(25,2098,1,1,'com/lkn/chess/bean/chess_piece/Cannons.getReachablePositions')
+f(26,2098,1,1,'com/lkn/chess/bean/chess_piece/Cannons.addAllCase')
+f(27,2098,1,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.recordReachablePosition',1,0,0)
+f(25,2099,1,1,'com/lkn/chess/bean/chess_piece/Elephants.findReachablePositions')
+f(25,2100,2,1,'com/lkn/chess/bean/chess_piece/Elephants.getReachablePositions')
+f(26,2100,2,1,'com/lkn/chess/bean/chess_piece/Elephants.findReachablePositions')
+f(25,2102,2,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(25,2104,3,1,'com/lkn/chess/bean/chess_piece/King.getReachablePositions')
+f(26,2104,3,2,'com/lkn/chess/bean/chess_piece/King.findReachablePositions',3,0,0)
+f(27,2104,3,2,'com/lkn/chess/bean/chess_piece/King.tryReachToEnemyKing',3,0,0)
+f(25,2107,1,1,'com/lkn/chess/bean/chess_piece/Pawns.getReachablePositions')
+f(26,2107,1,1,'com/lkn/chess/bean/chess_piece/Pawns.findReachablePositions')
+f(27,2107,1,2,'com/lkn/chess/bean/chess_piece/Pawns.tryReach',1,0,0)
+f(25,2108,4,1,'com/lkn/chess/bean/chess_piece/Rooks.getReachablePositions')
+f(26,2109,3,1,'com/lkn/chess/bean/chess_piece/Rooks.findReachablePositions')
+f(25,2112,5,2,'java/util/HashMap.put',5,0,0)
+f(26,2112,5,2,'java/util/HashMap.putVal',5,0,0)
+f(24,2117,3,1,'com/lkn/chess/bean/chess_piece/Cannons.getReachablePositions')
+f(25,2117,3,1,'com/lkn/chess/bean/chess_piece/Cannons.addAllCase')
+f(26,2117,3,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.recordReachablePosition',3,0,0)
+f(24,2120,1,1,'com/lkn/chess/bean/chess_piece/Pawns.getReachablePositions')
+f(25,2120,1,1,'com/lkn/chess/bean/chess_piece/Pawns.findReachablePositions')
+f(26,2120,1,2,'com/lkn/chess/bean/chess_piece/Pawns.tryReach',1,0,0)
+f(24,2121,1,1,'com/lkn/chess/bean/chess_piece/Rooks.getReachablePositions')
+f(25,2121,1,1,'com/lkn/chess/bean/chess_piece/Rooks.findReachablePositions')
+f(24,2122,1,2,'java/util/HashMap.put',1,0,0)
+f(25,2122,1,2,'java/util/HashMap.putVal',1,0,0)
+f(24,2123,1,3,'vtable stub')
+f(23,2124,1,1,'com/lkn/chess/bean/chess_piece/Cannons.getReachablePositions')
+f(24,2124,1,1,'com/lkn/chess/bean/chess_piece/Cannons.addAllCase')
+f(25,2124,1,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.recordReachablePosition',1,0,0)
+f(23,2125,2,1,'com/lkn/chess/bean/chess_piece/Mandarins.getReachablePositions')
+f(24,2126,1,2,'com/lkn/chess/bean/chess_piece/Mandarins.findReachablePositions',1,0,0)
+f(23,2127,1,1,'com/lkn/chess/bean/chess_piece/Pawns.getReachablePositions')
+f(24,2127,1,1,'com/lkn/chess/bean/chess_piece/Pawns.findReachablePositions')
+f(25,2127,1,2,'com/lkn/chess/bean/chess_piece/Pawns.tryReach',1,0,0)
+f(23,2128,2,1,'com/lkn/chess/bean/chess_piece/Rooks.getReachablePositions')
+f(24,2129,1,1,'com/lkn/chess/bean/chess_piece/Rooks.findReachablePositions')
+f(23,2130,2,2,'java/util/HashMap.put',2,0,0)
+f(24,2130,2,2,'java/util/HashMap.putVal',2,0,0)
+f(22,2132,1,1,'com/lkn/chess/bean/chess_piece/Cannons.getReachablePositions')
+f(23,2132,1,1,'com/lkn/chess/bean/chess_piece/Cannons.addAllCase')
+f(24,2132,1,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.recordReachablePosition',1,0,0)
+f(22,2133,2,1,'com/lkn/chess/bean/chess_piece/Elephants.getReachablePositions')
+f(23,2133,2,1,'com/lkn/chess/bean/chess_piece/Elephants.findReachablePositions')
+f(22,2135,1,1,'com/lkn/chess/bean/chess_piece/King.getReachablePositions')
+f(23,2135,1,2,'com/lkn/chess/bean/chess_piece/King.findReachablePositions',1,0,0)
+f(24,2135,1,2,'com/lkn/chess/bean/chess_piece/King.tryReachToEnemyKing',1,0,0)
+f(22,2136,1,1,'com/lkn/chess/bean/chess_piece/Mandarins.getReachablePositions')
+f(23,2136,1,2,'com/lkn/chess/bean/chess_piece/Mandarins.findReachablePositions',1,0,0)
+f(22,2137,2,1,'com/lkn/chess/bean/chess_piece/Pawns.getReachablePositions')
+f(23,2138,1,1,'com/lkn/chess/bean/chess_piece/Pawns.findReachablePositions')
+f(24,2138,1,2,'com/lkn/chess/bean/chess_piece/Pawns.tryReach',1,0,0)
+f(22,2139,2,1,'com/lkn/chess/bean/chess_piece/Rooks.getReachablePositions')
+f(23,2139,2,1,'com/lkn/chess/bean/chess_piece/Rooks.findReachablePositions')
+f(22,2141,2,2,'java/util/HashMap.put',2,0,0)
+f(23,2141,2,2,'java/util/HashMap.putVal',2,0,0)
+f(21,2143,2,1,'com/lkn/chess/bean/chess_piece/Cannons.getReachablePositions')
+f(22,2144,1,1,'com/lkn/chess/bean/chess_piece/Cannons.addAllCase')
+f(21,2145,3,1,'com/lkn/chess/bean/chess_piece/King.getReachablePositions')
+f(22,2145,3,2,'com/lkn/chess/bean/chess_piece/King.findReachablePositions',3,0,0)
+f(23,2145,3,2,'com/lkn/chess/bean/chess_piece/King.tryReachToEnemyKing',3,0,0)
+f(21,2148,1,1,'com/lkn/chess/bean/chess_piece/Mandarins.getReachablePositions')
+f(22,2148,1,2,'com/lkn/chess/bean/chess_piece/Mandarins.findReachablePositions',1,0,0)
+f(21,2149,1,1,'com/lkn/chess/bean/chess_piece/Pawns.getReachablePositions')
+f(21,2150,1,2,'java/util/HashMap.put',1,0,0)
+f(22,2150,1,2,'java/util/HashMap.putVal',1,0,0)
+f(21,2151,1,3,'vtable stub')
+f(20,2152,1,1,'com/lkn/chess/bean/chess_piece/Elephants.getReachablePositions')
+f(21,2152,1,1,'com/lkn/chess/bean/chess_piece/Elephants.findReachablePositions')
+f(20,2153,1,1,'com/lkn/chess/bean/chess_piece/King.getReachablePositions')
+f(21,2153,1,2,'com/lkn/chess/bean/chess_piece/King.findReachablePositions',1,0,0)
+f(22,2153,1,2,'com/lkn/chess/bean/chess_piece/King.tryReachToEnemyKing',1,0,0)
+f(20,2154,1,1,'com/lkn/chess/bean/chess_piece/Mandarins.getReachablePositions')
+f(21,2154,1,2,'com/lkn/chess/bean/chess_piece/Mandarins.findReachablePositions',1,0,0)
+f(20,2155,1,1,'com/lkn/chess/bean/chess_piece/Pawns.getReachablePositions')
+f(20,2156,1,1,'com/lkn/chess/bean/chess_piece/Rooks.getReachablePositions')
+f(21,2156,1,1,'com/lkn/chess/bean/chess_piece/Rooks.findReachablePositions')
+f(20,2157,1,3,'vtable stub')
+f(19,2158,1,1,'com/lkn/chess/bean/chess_piece/Cannons.getReachablePositions')
+f(20,2158,1,1,'com/lkn/chess/bean/chess_piece/Cannons.addAllCase')
+f(21,2158,1,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.recordReachablePosition',1,0,0)
+f(19,2159,1,1,'com/lkn/chess/bean/chess_piece/Horse.getReachablePositions')
+f(19,2160,1,1,'com/lkn/chess/bean/chess_piece/Mandarins.getReachablePositions')
+f(19,2161,1,1,'com/lkn/chess/bean/chess_piece/Pawns.getReachablePositions')
+f(19,2162,1,2,'java/util/HashMap.put',1,0,0)
+f(20,2162,1,2,'java/util/HashMap.putVal',1,0,0)
+f(18,2163,1,1,'com/lkn/chess/bean/chess_piece/Cannons.getReachablePositions')
+f(18,2164,1,2,'java/util/HashMap.put',1,0,0)
+f(19,2164,1,2,'java/util/HashMap.putVal',1,0,0)
+f(16,2165,1,1,'com/lkn/chess/bean/chess_piece/Cannons.getReachablePositions')
+f(17,2165,1,1,'com/lkn/chess/bean/chess_piece/Cannons.addAllCase')
+f(18,2165,1,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.recordReachablePosition',1,0,0)
+f(16,2166,1,1,'com/lkn/chess/bean/chess_piece/Pawns.getReachablePositions')
+f(15,2167,1,1,'com/lkn/chess/bean/chess_piece/Cannons.getReachablePositions')
+f(16,2167,1,1,'com/lkn/chess/bean/chess_piece/Cannons.addAllCase')
+f(17,2167,1,2,'com/lkn/chess/bean/chess_piece/AbstractChessPiece.recordReachablePosition',1,0,0)
+f(12,2168,1,1,'com/lkn/chess/bean/chess_piece/Rooks.getReachablePositions')
+f(13,2168,1,1,'com/lkn/chess/bean/chess_piece/Rooks.findReachablePositions')
+f(1,2169,1,1,'java/lang/Thread.run')
+f(2,2169,1,1,'com/alibaba/arthas/deps/io/netty/util/concurrent/FastThreadLocalRunnable.run')
+f(3,2169,1,1,'com/alibaba/arthas/deps/io/netty/util/internal/ThreadExecutorMap$2.run')
+f(4,2169,1,1,'com/alibaba/arthas/deps/io/netty/util/concurrent/SingleThreadEventExecutor$4.run')
+f(5,2169,1,1,'com/alibaba/arthas/deps/io/netty/channel/nio/NioEventLoop.run')
+f(6,2169,1,1,'com/alibaba/arthas/deps/io/netty/channel/nio/NioEventLoop.processSelectedKeys')
+f(7,2169,1,1,'com/alibaba/arthas/deps/io/netty/channel/nio/NioEventLoop.processSelectedKeysOptimized')
+f(8,2169,1,1,'com/alibaba/arthas/deps/io/netty/channel/nio/NioEventLoop.processSelectedKey')
+f(9,2169,1,1,'com/alibaba/arthas/deps/io/netty/channel/nio/AbstractNioByteChannel$NioByteUnsafe.read')
+f(10,2169,1,1,'com/alibaba/arthas/deps/io/netty/channel/DefaultChannelPipeline.fireChannelRead')
+f(11,2169,1,1,'com/alibaba/arthas/deps/io/netty/channel/AbstractChannelHandlerContext.invokeChannelRead')
+f(12,2169,1,1,'com/alibaba/arthas/deps/io/netty/channel/AbstractChannelHandlerContext.invokeChannelRead')
+f(13,2169,1,1,'com/alibaba/arthas/deps/io/netty/channel/DefaultChannelPipeline$HeadContext.channelRead')
+f(14,2169,1,1,'com/alibaba/arthas/deps/io/netty/channel/AbstractChannelHandlerContext.fireChannelRead')
+f(15,2169,1,1,'com/alibaba/arthas/deps/io/netty/channel/AbstractChannelHandlerContext.invokeChannelRead')
+f(16,2169,1,1,'com/alibaba/arthas/deps/io/netty/channel/AbstractChannelHandlerContext.invokeChannelRead')
+f(17,2169,1,1,'io/termd/core/telnet/netty/TelnetChannelHandler.channelRead')
+f(18,2169,1,1,'io/termd/core/telnet/TelnetConnection.receive')
+f(19,2169,1,1,'io/termd/core/telnet/TelnetConnection.flushDataIfNecessary')
+f(20,2169,1,1,'io/termd/core/telnet/TelnetConnection.flushData')
+f(21,2169,1,1,'io/termd/core/telnet/TelnetTtyConnection.onData')
+f(22,2169,1,1,'io/termd/core/io/BinaryDecoder.write')
+f(23,2169,1,1,'io/termd/core/io/BinaryDecoder.write')
+f(24,2169,1,1,'io/termd/core/tty/ReadBuffer.accept')
+f(25,2169,1,1,'io/termd/core/tty/ReadBuffer.accept')
+f(26,2169,1,1,'io/termd/core/tty/TtyEventDecoder.accept')
+f(27,2169,1,1,'io/termd/core/tty/TtyEventDecoder.accept')
+f(28,2169,1,1,'io/termd/core/readline/Readline$Interaction$2.accept')
+f(29,2169,1,1,'io/termd/core/readline/Readline$Interaction$2.accept')
+f(30,2169,1,1,'io/termd/core/readline/Readline.access$500')
+f(31,2169,1,1,'io/termd/core/readline/Readline.deliver')
+f(32,2169,1,1,'io/termd/core/readline/Readline$Interaction.access$200')
+f(33,2169,1,1,'io/termd/core/readline/Readline$Interaction.handle')
+f(34,2169,1,1,'io/termd/core/readline/Readline$2.apply')
+f(35,2169,1,1,'io/termd/core/readline/Readline$Interaction.access$000')
+f(36,2169,1,1,'io/termd/core/readline/Readline$Interaction.end')
+f(37,2169,1,1,'com/taobao/arthas/core/shell/handlers/term/RequestHandler.accept')
+f(38,2169,1,1,'com/taobao/arthas/core/shell/handlers/term/RequestHandler.accept')
+f(39,2169,1,1,'com/taobao/arthas/core/shell/handlers/shell/ShellLineHandler.handle')
+f(40,2169,1,1,'com/taobao/arthas/core/shell/handlers/shell/ShellLineHandler.handle')
+f(41,2169,1,1,'com/taobao/arthas/core/shell/handlers/shell/ShellLineHandler.createJob')
+f(42,2169,1,1,'com/taobao/arthas/core/shell/impl/ShellImpl.createJob')
+f(43,2169,1,1,'com/taobao/arthas/core/shell/system/impl/GlobalJobControllerImpl.createJob')
+f(44,2169,1,1,'com/taobao/arthas/core/shell/system/impl/JobControllerImpl.createJob')
+f(45,2169,1,1,'com/taobao/arthas/core/shell/system/impl/JobControllerImpl.createProcess')
+f(46,2169,1,1,'com/taobao/arthas/core/shell/system/impl/InternalCommandManager.getCommand')
+f(47,2169,1,1,'com/taobao/arthas/core/shell/system/impl/InternalCommandManager.getCommand')
+f(48,2169,1,1,'com/taobao/arthas/core/shell/command/impl/AnnotatedCommandImpl.name')
+f(49,2169,1,1,'com/taobao/arthas/core/shell/command/impl/AnnotatedCommandImpl.shouldOverridesName')
+f(50,2169,1,1,'java/lang/Class.getDeclaredMethod')
+f(51,2169,1,6,'java/lang/Class.privateGetDeclaredMethods',0,1,0)
+f(1,2170,17,3,'thread_start')
+f(2,2170,17,3,'_pthread_start')
+f(3,2170,17,3,'java_start(Thread*)')
+f(4,2170,1,4,'JavaThread::run()')
+f(5,2170,1,4,'JavaThread::thread_main_inner()')
+f(6,2170,1,4,'CompileBroker::compiler_thread_loop()')
+f(7,2170,1,4,'CompileBroker::invoke_compiler_on_method(CompileTask*)')
+f(8,2170,1,4,'Compiler::compile_method(ciEnv*, ciMethod*, int)')
+f(9,2170,1,4,'Compilation::Compilation(AbstractCompiler*, ciEnv*, ciMethod*, int, BufferBlob*)')
+f(10,2170,1,4,'Compilation::compile_method()')
+f(11,2170,1,4,'Compilation::compile_java_method()')
+f(12,2170,1,4,'Compilation::emit_lir()')
+f(13,2170,1,4,'LinearScan::do_linear_scan()')
+f(14,2170,1,4,'LinearScan::allocate_registers()')
+f(15,2170,1,4,'IntervalWalker::walk_to(int)')
+f(16,2170,1,4,'LinearScanWalker::activate_current()')
+f(17,2170,1,4,'LinearScanWalker::init_vars_for_alloc(Interval*)')
+f(4,2171,1,4,'VMThread::run()')
+f(5,2171,1,4,'VMThread::loop()')
+f(6,2171,1,4,'Monitor::wait(bool, long, bool)')
+f(7,2171,1,4,'Monitor::IWait(Thread*, long)')
+f(8,2171,1,4,'os::PlatformEvent::park(long)')
+f(9,2171,1,3,'__psynch_cvwait')
+f(4,2172,15,4,'WatcherThread::run()')
+f(5,2172,15,4,'WatcherThread::sleep() const')
+f(6,2173,14,4,'Monitor::wait(bool, long, bool)')
+f(7,2173,14,4,'Monitor::IWait(Thread*, long)')
+f(8,2173,14,4,'os::PlatformEvent::park(long)')
+f(9,2173,2,3,'__gettimeofday')
+f(9,2175,12,3,'__psynch_cvwait')
+
+search();
+</script></body></html>
