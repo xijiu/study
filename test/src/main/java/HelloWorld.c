@@ -12,6 +12,11 @@ JNIEXPORT void JNICALL Java_helloJni_displayHelloWorld(JNIEnv * env, jobject obj
 
         {
 
-          printf("ok!You have successfully passed the Java call c\n");
-
+          printf("c_lib::: ok!You have successfully passed the Java call c\n");
+          if (1 == 1) {
+            while (1) {
+                // 一直执行本地代码
+            }
+          }
+          printf("c_lib::: over\n");
         }

@@ -10,10 +10,10 @@ import com.lkn.dag.handlers.AbstractHandler;
 import com.lkn.dag.bean.BusHandler;
 import com.lkn.dag.handlers.Handler;
 import com.lkn.dag.handlers.Node;
-import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -199,7 +199,7 @@ public class DAGPrinter {
         for (int i = 0; i < arr.length; i++) {
             for (int j = 0; j < arr[i].length; j++) {
                 if (arr[i][j] > 0) {
-                    positionMap.put(arr[i][j], new Pair<>(i, j));
+                    positionMap.put(arr[i][j], Pair.of(i, j));
                 }
             }
         }
@@ -332,7 +332,7 @@ public class DAGPrinter {
             } else {
                 throw new RuntimeException("generic DAG error");
             }
-            positionMap.put(exeNum, new Pair<>(x, y));
+            positionMap.put(exeNum, Pair.of(x, y));
         }
     }
 
@@ -445,7 +445,7 @@ public class DAGPrinter {
             } else {
                 throw new RuntimeException("generic DAG error, position repeat");
             }
-            positionMap.put(exeNum, new Pair<>(x, y));
+            positionMap.put(exeNum, Pair.of(x, y));
         }
     }
 
@@ -527,7 +527,7 @@ public class DAGPrinter {
             Integer exeNum = list.get(i);
             int y = (i + 1) * COL_GAP;
             arr[x][y] = exeNum;
-            positionMap.put(exeNum, new Pair<>(x, y));
+            positionMap.put(exeNum, Pair.of(x, y));
         }
     }
 
@@ -547,7 +547,7 @@ public class DAGPrinter {
                 maxWidth = set.size();
             }
         }
-        return new Pair<>(level, maxWidth);
+        return Pair.of(level, maxWidth);
     }
 
 

@@ -82,13 +82,12 @@ public class ZeroCopyTest {
 
 	@Test
 	public void test1() throws IOException {
-		String a = "1,2,3";
-		List<String> list = Lists.newArrayList(Splitter.on(a).split(","));
-//		BufferedReader br = null;
-//		br.readLine();
-		System.out.println("********");
-		System.out.println("\r\n");
-		System.out.println("********");
+		ABC a = new ABC();
+		System.out.println(a.getClass().getName());
+	}
+
+	private class ABC {
+
 	}
 
 }

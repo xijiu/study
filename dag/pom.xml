@@ -7,6 +7,18 @@
   <groupId>com.lkn</groupId>
   <artifactId>dag</artifactId>
   <version>0.0.1-SNAPSHOT</version>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>8</source>
+          <target>8</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
   <name>dag</name>
 
@@ -20,7 +32,7 @@
     <diamond.version>3.8.3</diamond.version>
     <powermock.version>1.7.4</powermock.version>
     <guava.version>27.0.1-jre</guava.version>
-    <fastjson.version>1.2.68.noneautotype</fastjson.version>
+    <fastjson.version>1.2.67</fastjson.version>
   </properties>
 
 
@@ -149,21 +161,6 @@
       <artifactId>spring-boot-actuator</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>com.taobao.diamond</groupId>
-      <artifactId>diamond-client</artifactId>
-      <version>${diamond.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>com.alibaba</groupId>
-          <artifactId>fastjson</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.google.guava</groupId>
-          <artifactId>guava</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>

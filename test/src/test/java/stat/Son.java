@@ -2,12 +2,21 @@ package stat;
 
 import org.junit.Test;
 
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * @author xijiu
  * @since 2022/10/11 下午3:26
  */
 public class Son extends Father {
     private static int a = sum();
+
+    private ByteBuffer byteBuffer = ByteBuffer.allocate(50 * 1024 * 1024);
 
     static {
         System.out.println("son static");
@@ -19,15 +28,21 @@ public class Son extends Father {
         return 0;
     }
 
-    public static void main(String[] args) {
-        String str = "593G+357G+296G+253G";
-        String[] split = str.split("\\+");
-        int sum = 0;
-        for (String s : split) {
-            sum += Integer.parseInt(s.substring(0, 3));
+    public static void main(String[] args) throws Exception {
+        Map<String, String> map = new ConcurrentHashMap<>();
+        map.put("a", "a");
+        map.put("b", "b");
+        map.put("c", "c");
+        for (Map.Entry<String, String> entry : map.entrySet()) {
+            if (entry.getKey().equals("a")) {
+                map.remove(entry.getKey());
+            }
         }
-        System.out.println("sum is " + sum);
+        System.out.println(map);
     }
+
+
+
 
 
 }

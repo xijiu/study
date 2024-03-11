@@ -6,9 +6,9 @@ import com.google.common.collect.Sets;
 import com.lkn.dag.bean.NumHandler;
 import com.lkn.dag.handlers.Tools;
 import com.lkn.dag.bean.BusHandler;
-import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -366,7 +366,7 @@ public class DAG {
     public static void breadthFirstSearch(int prevNum, List<BusHandler> busHandlers, BusHandlerHook hook) {
         LinkedList<Pair<Integer, Integer>> assistList = Lists.newLinkedList();
         // 其中key是exeNum, val为当前节点在DAG图中的level层数
-        assistList.add(new Pair<>(prevNum, 0));
+        assistList.add(Pair.of(prevNum, 0));
         Map<Integer, Integer> maxLevelMap = Maps.newHashMap();
         maxLevelMap.put(prevNum, -1);
         Map<Integer, BusHandler> exeNumAndHandlerMap = busHandlers.stream()
@@ -413,7 +413,7 @@ public class DAG {
                 continue;
             }
             int maxLevel = Math.max(level + 1, maxLevelMap.getOrDefault(nextExeNum, -1));
-            assistList.add(new Pair<>(nextExeNum, maxLevel));
+            assistList.add(Pair.of(nextExeNum, maxLevel));
         }
         doBreadthFirstSearch(assistList, ensureUniqueSet, maxLevelMap, exeNumAndHandlerMap, hook);
     }
