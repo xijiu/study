@@ -7,7 +7,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import sun.security.rsa.RSACore;
-import sun.security.rsa.RSAKeyPairGenerator;
 
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
