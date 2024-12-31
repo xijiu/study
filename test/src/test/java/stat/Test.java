@@ -36,11 +36,11 @@ public class Test implements MyService<String> {
     }
 
 
-    private static class Son1 extends Test {
+    public static class Son1 extends Test {
         public Son1() {}
     }
 
-    private static class Son2 extends Test {
+    public static class Son2 extends Test {
         public Son2() {}
     }
 

@@ -6,23 +6,15 @@ import com.google.common.cache.LoadingCache;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import sun.security.rsa.RSACore;
 
-import java.io.FileOutputStream;
-import java.io.ObjectOutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.security.Key;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Semaphore;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author xijiu
@@ -190,5 +182,37 @@ public class Test3 {
         String newSourceStr = new String(newSource.toByteArray(), StandardCharsets.UTF_8);
         System.out.println("=======================================> 解密后的10进制数： " + newSource);
         System.out.println("=======================================> 解密后的字符串为： " + newSourceStr);
+    }
+
+    @Test
+    public void test6() {
+        String str1 = "jackson-annotations-2.16.2\n" +
+                "jackson-core-2.16.2\n" +
+                "jackson-databind-2.16.2\n" +
+                "jackson-dataformat-csv-2.16.2\n" +
+                "jackson-dataformat-yaml-2.16.2\n" +
+                "jackson-datatype-jdk8-2.16.2\n" +
+                "jackson-jaxrs-base-2.16.2\n" +
+                "jackson-jaxrs-json-provider-2.16.2\n" +
+                "jackson-module-blackbird-2.16.2\n" +
+                "jackson-module-jaxb-annotations-2.16.2\n" +
+                "jackson-module-scala_2.13-2.16.2";
+
+        String str2 = "jackson-jakarta-rs-base-2.16.2\n" +
+                "jackson-jakarta-rs-json-provider-2.16.2\n" +
+                "jackson-module-jakarta-xmlbind-annotations-2.16.2";
+        sort(str1, str2);
+    }
+
+    private void sort(String str1, String str2) {
+        String[] split1 = str1.split("\n");
+        List<String> list = new ArrayList<>(Arrays.asList(split1));
+        String[] split2 = str2.split("\n");
+        list.addAll(Arrays.asList(split2));
+        Collections.sort(list);
+
+        for (String ele : list) {
+            System.out.println(ele.trim());
+        }
     }
 }

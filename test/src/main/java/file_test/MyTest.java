@@ -8,7 +8,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Test;
-import sun.misc.SharedSecrets;
 
 import java.util.ArrayList;
 import java.util.HashMap;
